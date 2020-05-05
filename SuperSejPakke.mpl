@@ -1,7 +1,7 @@
 
 SuperSejPakke := module()
 option package;
-export Jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurveSolve, tay, hesse;
+export Jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurveSolve, tay, hesse, stamfelt;
 
 Jacobi := proc(r::{procedure})
    local kryds, i, var;
@@ -27,9 +27,13 @@ if (type(f,procedure)) then ops := op(1,eval(f)): <seq(diff(f(ops),ops[i]),i=1..
 else <seq(diff(f,opss[i]),i=1..nops(opss))>
 end if: end proc:
 
-rot:=proc(V::{procedure, Vector}) uses VectorCalculus;BasisFormat(false); local v;
-if (type(V,procedure)) then v := V(op(1,eval(V))); else v := V; end if: 
+rot:=proc(V::{procedure, Vector}) uses VectorCalculus;BasisFormat(false); local v, var;
+if (type(V,procedure)) then v := V(op(1,eval(V))); var:=[op(1,eval(r))]:
+unapply(Curl(Student[VectorCalculus][VectorField](v)),var);
+else v := V; 
 Curl(Student[VectorCalculus][VectorField](v));
+end if: 
+
 end proc:
 
 div:= proc(V::{procedure, Vector}); local v;
@@ -45,12 +49,12 @@ prik:=proc(x::Vector,y::Vector);VectorCalculus[DotProduct](x,y); end proc:
 
 normal:=proc(r::{procedure})
 local var; var:=op(1,eval(r)):
-if numelems([var])=2 then kryds(diff(r(var),var[1]),diff(r(var),var[2]));
-else print("Dont dead open inside"):
-end if:
+if (numelems([var])=2) then kryds(diff(r(var),var[1]),diff(r(var),var[2]));
+else print("Dont dead open inside")
+end if
 end proc:
 
-kryds:=proc(x::vector,y::vector);convert(VectorCalculus[CrossProduct](x,y),Vector);end proc:
+kryds:=proc(x::Vector,y::Vector);convert(VectorCalculus[CrossProduct](x,y),Vector);end proc:
 
 len:= proc(a::{Vector})
 sqrt(prik(a,a));
@@ -106,6 +110,10 @@ local var; var := [op(1,eval(f))]:
 unapply(VectorCalculus[Hessian](f(vop(var)),[vop(var)]),[vop(var)]);
 end proc:
 
+stamfelt:= proc(V::{procedure})
+local var,i,u; var:=op(1,eval(V)):
+<seq(int(u*V(var)[i],u=0..1),i=1..numelems([var]))>;
+end proc:
 
 end module;
 with(SuperSejPakke)
@@ -143,26 +151,6 @@ with(SuperSejPakke)
 # Hej Hans. Tænker vi bare laver hjælpekommandoer i hver funktion?
 # 
 # 
-
-# Her er funktionerne brugt lidt
-
-r:=(u,v,w)-> <u,v*(5-u^2),w>
-;
-Jacobi(r)
-;
-evectors(<4,1;3,2>)
-;
-
-V:=(x,y,z)-> <x+4*y,z+x,-7*x>
-;
-stokes(r,[0..4,0..1,0..2*Pi],V)
-;
-eval(r)
-;
-h:=(x,y)-> x^3-sin(y)
-;
-tay(h,[-1,2],2)
-;
 
 
 
