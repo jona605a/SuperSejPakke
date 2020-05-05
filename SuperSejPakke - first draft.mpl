@@ -32,8 +32,7 @@ if (type(V,procedure)) then v := V(op(1,eval(V))); var := [op(1,eval(V))]:
 unapply(Curl(Student[VectorCalculus][VectorField](v)),[vop(var)]);
 else v := V; 
 Curl(Student[VectorCalculus][VectorField](v));
-end if:
- 
+end if: 
 end proc:
 
 div:= proc(V::{procedure, Vector}); local v;
@@ -77,7 +76,7 @@ end proc:
 
 stokes:= proc(r::{procedure},integrateRange::{list},V::{procedure});
 local var,i; var := [op(1,eval(V))]:
-flux(r,integrateRange,rot(V));
+flux(r,integrateRange,unapply(rot(V(vop(var))),var));
 end proc:
 
 flowkurve:= proc(V::{procedure},starttid::{numeric}:=0,punkt::{list} := [1]);
@@ -105,7 +104,6 @@ end proc:
 
 
 end module;
-
 with(SuperSejPakke)
 ;
 # !!!TIL BRUG AF PAKKE!!!
