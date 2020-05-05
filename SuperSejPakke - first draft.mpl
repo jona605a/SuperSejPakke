@@ -1,12 +1,12 @@
 
 SuperSejPakke := module()
 option package;
-export Jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurveSolve, tay, hesse;
+export Jacobi, gradient, div, rot, evectors, prik, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurveSolve, tay, hesse;
 
 Jacobi := proc(r::{procedure})
    local kryds, i, var;
    var := [op(1,eval(r))]:
-
+   kryds:=(x,y)->convert(VectorCalculus[CrossProduct](x,y),Vector):
    if (numelems(var) = 1) then # Kurve jacobi
    simplify(LinearAlgebra[Norm](diff(r(var[1]),var[1]),2)) assuming var[1]::real
 
@@ -27,9 +27,12 @@ if (type(f,procedure)) then ops := op(1,eval(f)): <seq(diff(f(ops),ops[i]),i=1..
 else <seq(diff(f,opss[i]),i=1..nops(opss))>
 end if: end proc:
 
-rot:=proc(V::{procedure, Vector}) uses VectorCalculus;BasisFormat(false); local v;
-if (type(V,procedure)) then v := V(op(1,eval(V))); else v := V; end if: 
+rot:=proc(V::{procedure, Vector}) uses VectorCalculus;BasisFormat(false); local v,var;
+if (type(V,procedure)) then v := V(op(1,eval(V))); var := [op(1,eval(V))]: 
+unapply(Curl(Student[VectorCalculus][VectorField](v)),[vop(var)]);
+else v := V; 
 Curl(Student[VectorCalculus][VectorField](v));
+end if: 
 end proc:
 
 div:= proc(V::{procedure, Vector}); local v;
@@ -41,16 +44,9 @@ evectors:= proc(A::{Matrix});
 sort(LinearAlgebra[Eigenvectors](A,output = list));
 end proc:
 
-prik:=proc(x::Vector,y::Vector);VectorCalculus[DotProduct](x,y); end proc:
-
-normal:=proc(r::{procedure})
-local var; var:=op(1,eval(r)):
-if numelems([var])=2 then kryds(diff(r(var),var[1]),diff(r(var),var[2]));
-else print("Dont dead open inside"):
-end if:
+prik:= proc(a::{Vector},b::{Vector})
+LinearAlgebra[Transpose](a).b;
 end proc:
-
-kryds:=proc(x::vector,y::vector);convert(VectorCalculus[CrossProduct](x,y),Vector);end proc:
 
 len:= proc(a::{Vector})
 sqrt(prik(a,a));
@@ -110,9 +106,6 @@ end proc:
 end module;
 with(SuperSejPakke)
 ;
-
-
-
 # !!!TIL BRUG AF PAKKE!!!
 # Eksporter dette dokument som .mpl fil i den mappe, du gerne vil opbevare den i.
 # 
@@ -163,6 +156,4 @@ h:=(x,y)-> x^3-sin(y)
 ;
 tay(h,[-1,2],2)
 ;
-
-
 
