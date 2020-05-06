@@ -87,13 +87,14 @@ local var,i; var := [op(1,eval(V))]:
 flux(r,integrateRange,unapply(rot(V(vop(var))),var));
 end proc:
 
-flowkurve:= proc(V::{procedure},starttid::{numeric}:=0,punkt::{list} := [1]);
+flowkurve:= proc(V::{procedure},starttid::{numeric}:=0,punkt::{list} := [1],evaluate:=false);
 local i, var, funk, løs;
 var := [op(1,eval(V))]:
 funk := [seq(var[i](t),i=1..3)]:
 løs := dsolve([seq(diff(funk[i],t)=V(vop(funk))[i],i=1..3), if numelems(punkt) > 1 then seq(var[i](starttid)=punkt[i],i=1..3) else end if]):
-unapply(subs(løs,<seq(var[i](t),i=1..3)>),[t]);
-end proc:
+if (evaluate) then unapply(evalf(subs(løs,<seq(var[i](t),i=1..3)>)),[t]);
+else unapply(subs(løs,<seq(var[i](t),i=1..3)>),[t]);
+end if: end proc:
 
 flowkurveSolve := proc(flow::{procedure},punkt::{list});
 local var, i; var := [op(1,eval(flow))]:
