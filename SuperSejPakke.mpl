@@ -28,7 +28,7 @@ else <seq(diff(f,opss[i]),i=1..nops(opss))>
 end if: end proc:
 
 rot:=proc(V::{procedure, Vector}) uses VectorCalculus;BasisFormat(false); local v, var;
-if (type(V,procedure)) then v := V(op(1,eval(V))); var:=[op(1,eval(r))]:
+if (type(V,procedure)) then v := V(op(1,eval(V))); var:=[op(1,eval(V))]:
 unapply(Curl(Student[VectorCalculus][VectorField](v)),var);
 else v := V; 
 Curl(Student[VectorCalculus][VectorField](v));
@@ -111,8 +111,8 @@ unapply(VectorCalculus[Hessian](f(vop(var)),[vop(var)]),[vop(var)]);
 end proc:
 
 stamfelt:= proc(V::{procedure})
-local var,i,u; var:=op(1,eval(V)):
-<seq(int(u*V(var)[i],u=0..1),i=1..numelems([var]))>;
+local var,i,j,u; var:=op(1,eval(V)):
+kryds(<-x,-y,-z>,<seq(int(u*V(seq(var[j]*u,j=1..3))[i],u=0..1),i=1..numelems([var]))>);
 end proc:
 
 end module;
