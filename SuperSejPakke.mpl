@@ -1,7 +1,7 @@
 
 SuperSejPakke := module()
 option package;
-export Jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurveSolve, tay, hesse, stamfelt;
+export Jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurveSolve, tay, hesse, stamfelt, funkana, paraplot;
 
 Jacobi := proc(r::{procedure})
    local i, var;
@@ -116,11 +116,40 @@ local var,i,j,u; var:=op(1,eval(V)):
 kryds(<-x,-y,-z>,<seq(int(u*V(seq(var[j]*u,j=1..3))[i],u=0..1),i=1..numelems([var]))>);
 end proc:
 
+funkana := proc(f::{procedure})
+local var,nabla,H,i,sol; var:=op(1,eval(f)):
+nabla := gradient(f):
+sol := [solve([seq(nabla(var)[i]=0,i=1..numelems([var]))])];
+if (numelems(sol)>0) then
+H := hesse(f):
+sol,seq(LinearAlgebra[Eigenvalues](subs(sol[i],H(var))),i=1..numelems(sol));
+else
+"No solutions";
+end if:
+end proc;
+
+paraplot := proc(r::{procedure},range::{list})
+local var,i; var:=op(1,eval(r)):
+if (numelems(range)=1) then
+   if (numelems(r(var))=2) then
+   plot([vop(r(var)),var=range[1]],scaling=constrained);
+   else
+   plot3d([vop(r(var))],var=range[1],scaling=constrained)
+   end if:
+elif (numelems(range)=2) then
+plot3d([vop(r(var))],seq(var[i]=range[i],i=1..2), scaling=constrained);
+elif (numelems([var])=3) then
+     if (type(range[1],range)) then
+     "Husk at ikke at give ranges til volumer, men interval værdier";
+     else
+     Integrator8[sideFlader](r,range,[8,8,8]);
+     end if;
+end if;
+end proc;
+
 end module;
 with(SuperSejPakke)
 ;
-
-
 
 # !!!TIL BRUG AF PAKKE!!!
 # Eksporter dette dokument som .mpl fil i den mappe, du gerne vil opbevare den i.
