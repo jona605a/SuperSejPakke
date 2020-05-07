@@ -4,7 +4,7 @@
 <Label-Scheme value="2" prefix=""/>
 <View-Properties presentation="false" autoexpanding_sections="true" UserProfileName="Maple Default Profile" NumericFormat-ApplyInteger="true" NumericFormat-ApplyRational="true" NumericFormat-ApplyExponent="false" editable="true">
 </View-Properties>
-<MapleNet-Properties prettyprint="3" warnlevel="3" compactdisplay="false" preplot="" helpbrowser="standard" displayprecision="-1" echo="1" unitattributes="&quot;fontweight&quot; = &quot;bold&quot;" imaginaryunit="I" longdelim="true" elisiontermsthreshold="10000" elisiondigitsafter="100" elisiondigitsbefore="100" plotdevice="inline" errorbreak="1" plotoptions="" plotdriver="opengl" quiet="false" elisiontermsbefore="100" elisiontermsafter="100" historytimestamp="false" screenwidth="79" indentamount="4" plotoutput="terminal" screenpixelheight="768" rtablesize="[10, 10]" useclientjvm="true" labelwidth="20" postplot="" typesetting="extended" ansi="false" ansicolor="[]" elisiondigitsthreshold="10000" showassumed="1" ansilprint="false" trailingsemicolon="true" errorcursor="false" labelling="true" screenheight="25" prompt="&gt; " verboseproc="1" latexwidth="8.0" ShowLabels="true"/>
+<MapleNet-Properties prettyprint="3" warnlevel="3" compactdisplay="false" preplot="" helpbrowser="standard" displayprecision="-1" echo="1" unitattributes="&quot;fontweight&quot; = &quot;bold&quot;" imaginaryunit="I" longdelim="true" elisiontermsthreshold="10000" elisiondigitsafter="100" elisiondigitsbefore="100" plotdevice="inline" errorbreak="1" plotoptions="" plotdriver="opengl" quiet="false" elisiontermsbefore="100" elisiontermsafter="100" historytimestamp="false" screenwidth="79" indentamount="4" plotoutput="terminal" screenpixelheight="1080" rtablesize="[10, 10]" useclientjvm="true" labelwidth="20" postplot="" typesetting="extended" ansi="false" ansicolor="[]" elisiondigitsthreshold="10000" showassumed="1" ansilprint="false" trailingsemicolon="true" errorcursor="false" labelling="true" screenheight="25" prompt="&gt; " verboseproc="1" latexwidth="8.0" ShowLabels="true"/>
 <Styles>
 <Font name="Heading 1" background="[255,255,255]" bold="true" executable="false" family="Times New Roman" foreground="[0,0,0]" italic="false" opaque="false" readonly="false" size="18" subscript="false" superscript="false" underline="false" placeholder="false"/>
 <Font name="Warning" background="[255,255,255]" bold="false" executable="false" family="Courier New" foreground="[0,0,255]" italic="false" opaque="false" readonly="true" size="12" subscript="false" superscript="false" underline="false" placeholder="false"/>
@@ -94,7 +94,7 @@ option package;
 export Jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurveSolve, tay, hesse, stamfelt;
 
 Jacobi := proc(r::{procedure})
-   local kryds, i, var;
+   local i, var;
    var := [op(1,eval(r))]:
 
    if (numelems(var) = 1) then # Kurve jacobi
@@ -113,7 +113,7 @@ end if: end proc:
 
 gradient := proc(f::{procedure,algebraic},opss::list:=[x,y,z])
 local i, ops;
-if (type(f,procedure)) then ops := op(1,eval(f)): &lt;seq(diff(f(ops),ops[i]),i=1..nops([ops]))&gt;;
+if (type(f,procedure)) then ops := op(1,eval(f)): unapply(&lt;seq(diff(f(ops),ops[i]),i=1..nops([ops]))&gt;,[ops]);
 else &lt;seq(diff(f,opss[i]),i=1..nops(opss))&gt;
 end if: end proc:
 
@@ -184,7 +184,7 @@ funk := [seq(var[i](t),i=1..3)]:
 <Font encoding="UTF-8">l\303\270s := dsolve([</Font>seq(diff(funk[i],t)=V(vop(funk))[i],i=1..3), if numelems(punkt) &gt; 1 then seq(var[i](starttid)=punkt[i],i=1..3) else end if]):
 if (evaluate) then <Font encoding="UTF-8">unapply(evalf(subs(l\303\270s,&lt;seq(var[i](t),i=1..3)&gt;)),[t]);
 else unapply(subs(l\303\270s,&lt;seq(var[i](t),i=1..3)&gt;),[t]);
-end if: </Font>end proc:
+</Font>end if: end proc:
 
 flowkurveSolve := proc(flow::{procedure},punkt::{list});
 local var, i; var := [op(1,eval(flow))]:

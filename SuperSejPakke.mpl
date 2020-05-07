@@ -4,7 +4,7 @@ option package;
 export Jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurveSolve, tay, hesse, stamfelt;
 
 Jacobi := proc(r::{procedure})
-   local kryds, i, var;
+   local i, var;
    var := [op(1,eval(r))]:
 
    if (numelems(var) = 1) then # Kurve jacobi
@@ -23,7 +23,7 @@ end if: end proc:
 
 gradient := proc(f::{procedure,algebraic},opss::list:=[x,y,z])
 local i, ops;
-if (type(f,procedure)) then ops := op(1,eval(f)): <seq(diff(f(ops),ops[i]),i=1..nops([ops]))>;
+if (type(f,procedure)) then ops := op(1,eval(f)): unapply(<seq(diff(f(ops),ops[i]),i=1..nops([ops]))>,[ops]);
 else <seq(diff(f,opss[i]),i=1..nops(opss))>
 end if: end proc:
 
