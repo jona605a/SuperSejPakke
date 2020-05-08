@@ -90,10 +90,10 @@ end proc:
 flowkurve:= proc(V::{procedure},starttid::{numeric}:=0,punkt::{list} := [1],evaluate:=false);
 local i, var, funk, løs;
 var := [op(1,eval(V))]:
-funk := [seq(var[i](t),i=1..3)]:
-løs := dsolve([seq(diff(funk[i],t)=V(vop(funk))[i],i=1..3), if numelems(punkt) > 1 then seq(var[i](starttid)=punkt[i],i=1..3) else end if]):
-if (evaluate) then unapply(evalf(subs(løs,<seq(var[i](t),i=1..3)>)),[t]);
-else unapply(subs(løs,<seq(var[i](t),i=1..3)>),[t]);
+funk := [seq(var[i](t),i=1..numelems(var))]:
+løs := dsolve([seq(diff(funk[i],t)=V(vop(funk))[i],i=1..numelems(var)), if numelems(punkt) > 1 then seq(var[i](starttid)=punkt[i],i=1..numelems(var)) else end if]):
+if (evaluate) then unapply(evalf(subs(løs,<seq(var[i](t),i=1..numelems(var))>)),[t]);
+else unapply(subs(løs,<seq(var[i](t),i=1..numelems(var))>),[t]);
 end if: end proc:
 
 flowkurveSolve := proc(flow::{procedure},punkt::{list});
@@ -116,8 +116,9 @@ local var,i,j,u; var:=op(1,eval(V)):
 kryds(<-x,-y,-z>,<seq(int(u*V(seq(var[j]*u,j=1..3))[i],u=0..1),i=1..numelems([var]))>);
 end proc:
 
-funkana := proc(f::{procedure})
+funkana := proc(f::{procedure},r::{procedure}:=1)
 local var,nabla,H,i,sol; var:=op(1,eval(f)):
+if (r=1) then
 nabla := gradient(f):
 sol := [solve([seq(nabla(var)[i]=0,i=1..numelems([var]))])];
 if (numelems(sol)>0) then
@@ -126,6 +127,12 @@ sol,seq(LinearAlgebra[Eigenvalues](subs(sol[i],H(var))),i=1..numelems(sol));
 else
 "No solutions";
 end if:
+else
+local var2, sol2, afledt; var2 := op(1,eval(r)):
+afledt := unapply(diff(f(vop(r(var2))),var2),var2):
+sol2 := [solve(afledt(var2)=0,var2)]:
+sol2, seq(subs(var2=sol2[i],r(var2)),i=1..numelems(sol2));
+end if;
 end proc;
 
 paraplot := proc(r::{procedure},range::{list})
