@@ -1,7 +1,7 @@
 
 SuperSejPakke := module()
 option package;
-export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot;
+export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot,massemidte;
 
 jacobi := proc(r::{procedure})
 local i, var;
@@ -81,8 +81,7 @@ int(prik(V(vop(r(var[1]))),diff(r(var[1]),var[1])),var[1]=integrateRange);
 end proc:
 
 stokes:= proc(r::{procedure},integrateRange::{list},V::{procedure});
-local var,i; var := [op(1,eval(V))]:
-flux(r,integrateRange,unapply(rot(V(vop(var))),var));
+flux(r,integrateRange,rot(V));
 end proc:
 
 flowkurve:= proc(V::{procedure},starttid::{numeric}:=0,punkt::{list} := [1],evaluate:=false);
@@ -143,18 +142,32 @@ if (numelems(range)=1) then
    end if:
 elif (numelems(range)=2) then
    if (numelems(r(var))=2) then
-      plot3d(<r(var),0>,var[1]=range[1],var[2]=range[2],orientation=[-90,0],lightmodel=none); # Plan i 2D aka flad 3D
+      plot3d(<r(var),0>,var[1]=range[1],var[2]=range[2],orientation=[-90,0],lightmodel=none); # Plan i 2D
    else
       plot3d(r(var),var[1]=range[1],var[2]=range[2],orientation=[-55,75,0]); # Flade i 3D
    end if:
 elif (numelems([var])=3) then 
-   Integrator8[sideFlader](r,[seq(vop(convert(range[i],list)),i=1..3)],[8,8,8]); # Legeme i 3D
+   Integrator8[sideFlader](r,[seq(vop(convert(range[i],list)),i=1..3)],[8,8,8]); 
 end if;
 end proc;
+
+massemidte := proc(r::procedure, range::list, f::procedure:=1)
+local M, i, var,fweight; var:=op(1,eval(f)):
+M := integrer(r,range,f):
+if (numelems([var])>1) then 
+   fweight:=unapply(f(var)*var[i],[var]); 
+else 
+   fweight:=unapply([x,y,z][i],[x,y,z])
+end if;
+<seq(integrer(r,range,fweight),i=1..3)> * 1/M;
+end proc:
 
 end module:
 with(SuperSejPakke)
 ;
+
+
+
 # !!!TIL BRUG AF PAKKE!!!
 # Eksporter dette dokument som .mpl fil i den mappe, du gerne vil opbevare den i.
 # 
@@ -193,6 +206,16 @@ with(SuperSejPakke)
 #r4:=(u,v) -> <u,exp(-u/3)*sin(u)*v,-cos(v)>,[0..4,0..1]:
 #r5:=(u,v,w) -> <u*v*cos(w),u*v*sin(w),u^2*v>,[0..2,0..1,0..3/2*Pi]:
 #paraplot(r1);paraplot(r2);paraplot(r3);paraplot(r4);paraplot(r5);
+
+
+# Brug af massemidte
+#r5:=(u,v,w) -> <u*v*cos(w),u*v*sin(w),u^2*v>,[0..2,0..1,0..3/2*Pi];
+#f:=(x,y,z)-> x^2+y^2+z^2;
+#massemidte(r5);
+#with(plots):display(paraplot(r5),pointplot3d(massemidte(r5),symbol=solidsphere,symbolsize=20,color=green))
+
+
+
 
 
 

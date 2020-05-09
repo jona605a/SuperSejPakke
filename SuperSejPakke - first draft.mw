@@ -91,7 +91,7 @@
 <Group hide-input="false" labelreference="L1085" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">SuperSejPakke := module()
 option package;
-export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot;
+export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot,massemidte;
 
 jacobi := proc(r::{procedure})
 local i, var;
@@ -171,8 +171,7 @@ int(prik(V(vop(r(var[1]))),diff(r(var[1]),var[1])),var[1]=integrateRange);
 end proc:
 
 stokes:= proc(r::{procedure},integrateRange::{list},V::{procedure});
-local var,i; var := [op(1,eval(V))]:
-flux(r,integrateRange,unapply(rot(V(vop(var))),var));
+flux(r,integrateRange,rot(V));
 end proc:
 
 flowkurve:= proc(V::{procedure},starttid::{numeric}:=0,punkt::{list} := [1],evaluate:=false);
@@ -233,14 +232,25 @@ if (numelems(range)=1) then
    end if:
 elif (numelems(range)=2) then
    if (numelems(r(var))=2) then
-      plot3d(&lt;r(var),0&gt;,var[1]=range[1],var[2]=range[2],orientation=[-90,0],lightmodel=none); # Plan i 2D aka flad 3D
+      plot3d(&lt;r(var),0&gt;,var[1]=range[1],var[2]=range[2],orientation=[-90,0],lightmodel=none); # Plan i 2D
    else
       plot3d(r(var),var[1]=range[1],var[2]=range[2],orientation=[-55,75,0]); # Flade i 3D
    end if:
 elif (numelems([var])=3) then 
-   Integrator8[sideFlader](r,[seq(vop(convert(range[i],list)),i=1..3)],[8,8,8]); # Legeme i 3D
+   Integrator8[sideFlader](r,[seq(vop(convert(range[i],list)),i=1..3)],[8,8,8]); 
 end if;
 end proc;
+
+massemidte := proc(r::procedure, range::list, f::procedure:=1)
+local M, i, var,fweight; var:=op(1,eval(f)):
+M := integrer(r,range,f):
+if (numelems([var])&gt;1) then 
+   fweight:=unapply(f(var)*var[i],[var]); 
+else 
+   fweight:=unapply([x,y,z][i],[x,y,z])
+end if;
+&lt;seq(integrer(r,range,fweight),i=1..3)&gt; * 1/M;
+end proc:
 
 end module:</Text-field>
 </Input>
@@ -248,8 +258,20 @@ end module:</Text-field>
 <Group hide-input="false" labelreference="L1216" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">with(SuperSejPakke)</Text-field>
 </Input>
-<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUkobWZlbmNlZEc2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUklbXJvd0dGJDZOLUkjbWlHRiQ2JVEkZGl2RicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEiLEYnL0Y2USdub3JtYWxGJy8lJmZlbmNlR1EmZmFsc2VGJy8lKnNlcGFyYXRvckdGNC8lKXN0cmV0Y2h5R0ZALyUqc3ltbWV0cmljR0ZALyUobGFyZ2VvcEdGQC8lLm1vdmFibGVsaW1pdHNHRkAvJSdhY2NlbnRHRkAvJSdsc3BhY2VHUSYwLjBlbUYnLyUncnNwYWNlR1EsMC4zMzMzMzMzZW1GJy1GLzYlUSlldmVjdG9yc0YnRjJGNUY4LUYvNiVRKmZsb3drdXJ2ZUYnRjJGNUY4LUYvNiVRL2Zsb3drdXJ2ZXNvbHZlRidGMkY1RjgtRi82JVElZmx1eEYnRjJGNUY4LUYvNiVRKGZ1bmthbmFGJ0YyRjVGOC1GLzYlUSlncmFkaWVudEYnRjJGNUY4LUYvNiVRJmhlc3NlRidGMkY1RjgtRi82JVEpaW50ZWdyZXJGJ0YyRjVGOC1GLzYlUSdqYWNvYmlGJ0YyRjVGOC1GLzYlUSZrcnlkc0YnRjJGNUY4LUYvNiVRJGxlbkYnRjJGNUY4LUYvNiVGPUYyRjVGOC1GLzYlUSlwYXJhcGxvdEYnRjJGNUY4LUYvNiVRJXByaWtGJ0YyRjVGOC1GLzYlUSRyb3RGJ0YyRjVGOC1GLzYlUSlzdGFtZmVsdEYnRjJGNUY4LUYvNiVRJ3N0b2tlc0YnRjJGNUY4LUYvNiVRKXRhbmdpZWx0RidGMkY1RjgtRi82JVEkdGF5RidGMkY1RjgtRi82JVEkdm9wRidGMkY1LyUrZm9yZWdyb3VuZEdRKFswLDAsMF1GJy8lKXJlYWRvbmx5R0ZARjxGPC8lJW9wZW5HUScmbHNxYjtGJy8lJmNsb3NlR1EnJnJzcWI7Ric=">NzdJJGRpdkc2IkkpZXZlY3RvcnNHRiRJKmZsb3drdXJ2ZUdGJEkvZmxvd2t1cnZlc29sdmVHRiRJJWZsdXhHRiRJKGZ1bmthbmFHRiRJKWdyYWRpZW50R0YkSSZoZXNzZUdGJEkpaW50ZWdyZXJHRiRJJ2phY29iaUdGJEkma3J5ZHNHRiRJJGxlbkdGJEknbm9ybWFsRyUqcHJvdGVjdGVkR0kpcGFyYXBsb3RHRiRJJXByaWtHRiRJJHJvdEdGJEkpc3RhbWZlbHRHRiRJJ3N0b2tlc0dGJEkpdGFuZ2llbHRHRiRJJHRheUdGJEkkdm9wR0Yk</Equation></Text-field>
+<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUkobWZlbmNlZEc2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUklbXJvd0dGJDZQLUkjbWlHRiQ2JVEkZGl2RicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEiLEYnL0Y2USdub3JtYWxGJy8lJmZlbmNlR1EmZmFsc2VGJy8lKnNlcGFyYXRvckdGNC8lKXN0cmV0Y2h5R0ZALyUqc3ltbWV0cmljR0ZALyUobGFyZ2VvcEdGQC8lLm1vdmFibGVsaW1pdHNHRkAvJSdhY2NlbnRHRkAvJSdsc3BhY2VHUSYwLjBlbUYnLyUncnNwYWNlR1EsMC4zMzMzMzMzZW1GJy1GLzYlUSlldmVjdG9yc0YnRjJGNUY4LUYvNiVRKmZsb3drdXJ2ZUYnRjJGNUY4LUYvNiVRL2Zsb3drdXJ2ZXNvbHZlRidGMkY1RjgtRi82JVElZmx1eEYnRjJGNUY4LUYvNiVRKGZ1bmthbmFGJ0YyRjVGOC1GLzYlUSlncmFkaWVudEYnRjJGNUY4LUYvNiVRJmhlc3NlRidGMkY1RjgtRi82JVEpaW50ZWdyZXJGJ0YyRjVGOC1GLzYlUSdqYWNvYmlGJ0YyRjVGOC1GLzYlUSZrcnlkc0YnRjJGNUY4LUYvNiVRJGxlbkYnRjJGNUY4LUYvNiVRK21hc3NlbWlkdGVGJ0YyRjVGOC1GLzYlRj1GMkY1RjgtRi82JVEpcGFyYXBsb3RGJ0YyRjVGOC1GLzYlUSVwcmlrRidGMkY1RjgtRi82JVEkcm90RidGMkY1RjgtRi82JVEpc3RhbWZlbHRGJ0YyRjVGOC1GLzYlUSdzdG9rZXNGJ0YyRjVGOC1GLzYlUSl0YW5naWVsdEYnRjJGNUY4LUYvNiVRJHRheUYnRjJGNUY4LUYvNiVRJHZvcEYnRjJGNS8lK2ZvcmVncm91bmRHUShbMCwwLDBdRicvJSlyZWFkb25seUdGQEY8RjwvJSVvcGVuR1EnJmxzcWI7RicvJSZjbG9zZUdRJyZyc3FiO0Yn">NzhJJGRpdkc2IkkpZXZlY3RvcnNHRiRJKmZsb3drdXJ2ZUdGJEkvZmxvd2t1cnZlc29sdmVHRiRJJWZsdXhHRiRJKGZ1bmthbmFHRiRJKWdyYWRpZW50R0YkSSZoZXNzZUdGJEkpaW50ZWdyZXJHRiRJJ2phY29iaUdGJEkma3J5ZHNHRiRJJGxlbkdGJEkrbWFzc2VtaWR0ZUdGJEknbm9ybWFsRyUqcHJvdGVjdGVkR0kpcGFyYXBsb3RHRiRJJXByaWtHRiRJJHJvdEdGJEkpc3RhbWZlbHRHRiRJJ3N0b2tlc0dGJEkpdGFuZ2llbHRHRiRJJHRheUdGJEkkdm9wR0Yk</Equation></Text-field>
 </Output>
+</Group>
+<Group hide-input="false" labelreference="L1895" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+<Group hide-input="false" labelreference="L1896" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+<Group labelreference="L1908" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
 </Group>
 <Group labelreference="L1208" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field style="Text" layout="Normal" alignment="centred"><Font size="26" bold="true">!!!TIL BRUG AF PAKKE!!!</Font></Text-field>
@@ -295,11 +317,11 @@ Og pakken kan nu anvendes.</Text-field>
 <Input><Text-field style="Text" layout="Normal">Kommer senere...</Text-field><Text-field style="Text" layout="Normal"></Text-field><Text-field style="Text" layout="Normal"><Font encoding="UTF-8">Hej Hans. T\303\246nker vi bare laver hj\303\246lpekommandoer i hver funktion?</Font></Text-field><Text-field style="Text" layout="Normal"></Text-field><Text-field style="Text" layout="Normal"></Text-field>
 </Input>
 </Group>
-<Group labelreference="L1226" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Group labelreference="L1947" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 </Input>
 </Group>
-<Group labelreference="L1245" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Group hide-input="false" labelreference="L1226" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 </Input>
 </Group>
@@ -325,15 +347,44 @@ Og pakken kan nu anvendes.</Text-field>
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 </Input>
 </Group>
+<Section collapsed="true" isCollapsible="true" drawButton="true" MultipleChoiceAnswerIndex="-1" MultipleChoiceRandomizeChoices="false" TrueFalseAnswerIndex="-1" EssayAnswerRows="5" EssayAnswerColumns="60"><Title><Text-field style="Heading 1" layout="Heading 1">Brug af massemidte</Text-field></Title>
+<Group hide-input="false" labelreference="L1944" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">#r5:=(u,v,w) -&gt; &lt;u*v*cos(w),u*v*sin(w),u^2*v&gt;,[0..2,0..1,0..3/2*Pi];
+#f:=(x,y,z)-&gt; x^2+y^2+z^2;
+#massemidte(r5);
+#with(plots):display(paraplot(r5),pointplot3d(massemidte(r5),symbol=solidsphere,symbolsize=20,color=green))</Text-field>
+</Input>
+</Group>
+</Section>
 <Group hide-input="false" labelreference="L1282" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 </Input>
 </Group>
-<Group labelreference="L1894" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Group hide-input="false" labelreference="L1897" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 </Input>
 </Group>
-<Group labelreference="L1893" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Group hide-input="false" labelreference="L1894" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+<Group hide-input="false" labelreference="L1919" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+<Group hide-input="false" labelreference="L1935" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+<Group hide-input="false" labelreference="L1898" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+<Group hide-input="false" labelreference="L1926" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+<Group hide-input="false" labelreference="L1893" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 </Input>
 </Group>
