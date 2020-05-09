@@ -4,7 +4,7 @@
 <Label-Scheme value="2" prefix=""/>
 <View-Properties presentation="false" autoexpanding_sections="true" UserProfileName="Maple Default Profile" NumericFormat-ApplyInteger="true" NumericFormat-ApplyRational="true" NumericFormat-ApplyExponent="false" editable="true">
 </View-Properties>
-<MapleNet-Properties prettyprint="3" warnlevel="3" compactdisplay="false" preplot="" helpbrowser="standard" displayprecision="-1" echo="1" unitattributes="&quot;fontweight&quot; = &quot;bold&quot;" imaginaryunit="I" longdelim="true" elisiontermsthreshold="10000" elisiondigitsafter="100" elisiondigitsbefore="100" plotdevice="inline" errorbreak="1" plotoptions="" plotdriver="opengl" quiet="false" elisiontermsbefore="100" elisiontermsafter="100" historytimestamp="false" screenwidth="79" indentamount="4" plotoutput="terminal" screenpixelheight="1080" rtablesize="[10, 10]" useclientjvm="true" labelwidth="20" postplot="" typesetting="extended" ansi="false" ansicolor="[]" elisiondigitsthreshold="10000" showassumed="1" ansilprint="false" trailingsemicolon="true" errorcursor="false" labelling="true" screenheight="25" prompt="&gt; " verboseproc="1" latexwidth="8.0" ShowLabels="true"/>
+<MapleNet-Properties prettyprint="3" warnlevel="3" compactdisplay="false" preplot="" helpbrowser="standard" displayprecision="-1" echo="1" unitattributes="&quot;fontweight&quot; = &quot;bold&quot;" imaginaryunit="I" longdelim="true" elisiontermsthreshold="10000" elisiondigitsafter="100" elisiondigitsbefore="100" plotdevice="inline" errorbreak="1" plotoptions="" plotdriver="opengl" quiet="false" elisiontermsbefore="100" elisiontermsafter="100" historytimestamp="false" screenwidth="79" indentamount="4" plotoutput="terminal" screenpixelheight="768" rtablesize="[10, 10]" useclientjvm="true" labelwidth="20" postplot="" typesetting="extended" ansi="false" ansicolor="[]" elisiondigitsthreshold="10000" showassumed="1" ansilprint="false" trailingsemicolon="true" errorcursor="false" labelling="true" screenheight="25" prompt="&gt; " verboseproc="1" latexwidth="8.0" ShowLabels="true"/>
 <Styles>
 <Font name="Heading 1" background="[255,255,255]" bold="true" executable="false" family="Times New Roman" foreground="[0,0,0]" italic="false" opaque="false" readonly="false" size="18" subscript="false" superscript="false" underline="false" placeholder="false"/>
 <Font name="Warning" background="[255,255,255]" bold="false" executable="false" family="Courier New" foreground="[0,0,255]" italic="false" opaque="false" readonly="true" size="12" subscript="false" superscript="false" underline="false" placeholder="false"/>
@@ -91,24 +91,20 @@
 <Group hide-input="false" labelreference="L1085" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">SuperSejPakke := module()
 option package;
-export Jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurveSolve, tay, hesse, stamfelt, funkana, paraplot;
+export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot;
 
-Jacobi := proc(r::{procedure})
-   local i, var;
-   var := [op(1,eval(r))]:
-
-   if (numelems(var) = 1) then # Kurve jacobi
+jacobi := proc(r::{procedure})
+local i, var;
+var := [op(1,eval(r))]:
+if (numelems(var) = 1) then # Kurve jacobi
    simplify(LinearAlgebra[Norm](diff(r(var[1]),var[1]),2)) assuming var[1]::real
-
-   elif (numelems(var) = 2 and numelems(r(vop(var))) = 2) then # Plan jacobi
+elif (numelems(var) = 2 and numelems(r(vop(var))) = 2) then # Plan jacobi
    simplify(abs((VectorCalculus[Jacobian](r(vop(var)),var,determinant)[2]))) assuming var[1]::real, var[2]::real
-
-   elif (numelems(var) = 2) then # Flade jacobi
+elif (numelems(var) = 2) then # Flade jacobi
    simplify(LinearAlgebra[Norm](kryds(diff(r(vop(var)),var[1]),diff(r(vop(var)),var[2])),2)) assuming var[1]::real, var[2]::real
-
-   elif (numelems(var) = 3)  then # Rum jacobi
+elif (numelems(var) = 3)  then # Rum jacobi
    simplify(abs((VectorCalculus[Jacobian](r(vop(var)),var,determinant)[2]))) assuming var[1]::real, var[2]::real, var[3]::real
-   else 0 # Overvej om vi vil have en fejlbesked
+else Xi # Overvej om vi vil have en fejlbesked
 end if: end proc:
 
 gradient := proc(f::{procedure,algebraic},opss::list:=[x,y,z])
@@ -123,13 +119,13 @@ unapply(Curl(Student[VectorCalculus][VectorField](v)),var);
 else v := V; 
 Curl(Student[VectorCalculus][VectorField](v));
 end if: 
-
 end proc:
 
 div:= proc(V::{procedure, Vector}); local v;
 if (type(V,procedure)) then v := V(op(1,eval(V))); else v := V; end if: 
-unapply(VectorCalculus[Divergence](Student[VectorCalculus][VectorField](v)),[x,y,z])
-end proc:
+if (numelems(v)=2) then unapply(VectorCalculus[Divergence](Student[VectorCalculus][VectorField](v)),[x,y]);
+else unapply(VectorCalculus[Divergence](Student[VectorCalculus][VectorField](v)),[x,y,z]);
+end if; end proc:
 
 evectors:= proc(A::{Matrix});
 sort(LinearAlgebra[Eigenvectors](A,output = list));
@@ -140,11 +136,13 @@ prik:=proc(x::Vector,y::Vector);VectorCalculus[DotProduct](x,y); end proc:
 normal:=proc(r::{procedure})
 local var; var:=op(1,eval(r)):
 if (numelems([var])=2) then kryds(diff(r(var),var[1]),diff(r(var),var[2]));
-else print(&quot;Dont dead open inside&quot;)
-end if
+else print(&quot;Dont dead open inside&quot;);
+end if;
 end proc:
 
-kryds:=proc(x::Vector,y::Vector);convert(VectorCalculus[CrossProduct](x,y),Vector);end proc:
+kryds:=proc(x::Vector,y::Vector);
+convert(VectorCalculus[CrossProduct](x,y),Vector);
+end proc:
 
 len:= proc(a::{Vector})
 sqrt(prik(a,a));
@@ -157,7 +155,7 @@ end proc:
 integrer:= proc(r::{procedure},integrateRange::{list},f::{procedure}:=1);
 local var, i;
 var := [op(1,eval(r))]:
-int(f(vop(r(vop(var))))*Jacobi(r),seq(var[i]=integrateRange[i],i=1..numelems(integrateRange)));
+int(f(vop(r(vop(var))))*jacobi(r),seq(var[i]=integrateRange[i],i=1..numelems(integrateRange)));
 end proc:
 
 flux:= proc(r::{procedure},integrateRange::{list},V::{procedure});
@@ -186,7 +184,7 @@ if (evaluate) then <Font encoding="UTF-8">unapply(evalf(subs(l\303\270s,&lt;seq(
 <Font encoding="UTF-8">else unapply(subs(l\303\270s,&lt;seq(var[i](t),i=1..</Font>numelems(var))&gt;),[t]);
 end if: end proc:
 
-flowkurveSolve := proc(flow::{procedure},punkt::{list});
+flowkurvesolve := proc(flow::{procedure},punkt::{list});
 local var, i; var := [op(1,eval(flow))]:
 unapply(subs(solve([seq(flow(punkt[1])[i]=punkt[i+1],i=1..3)]),flow(var[1])),var[1]);
 end proc:
@@ -203,25 +201,25 @@ end proc:
 
 stamfelt:= proc(V::{procedure})
 local var,i,j,u; var:=op(1,eval(V)):
-kryds(&lt;-x,-y,-z&gt;,&lt;seq(int(u*V(seq(var[j]*u,j=1..3))[i],u=0..1),i=1..numelems([var]))&gt;);
+kryds(&lt;-x,-y,-z&gt;,&lt;seq(int(u*V(seq(var[j]*u,j=1..3))[i],u=0..1),i=1..3)&gt;);
 end proc:
 
 funkana := proc(f::{procedure},r::{procedure}:=1)
 local var,nabla,H,i,sol; var:=op(1,eval(f)):
 if (r=1) then
-nabla := gradient(f):
-sol := [solve([seq(nabla(var)[i]=0,i=1..numelems([var]))])];
-if (numelems(sol)&gt;0) then
-H := hesse(f):
-sol,seq(LinearAlgebra[Eigenvalues](subs(sol[i],H(var))),i=1..numelems(sol));
+   nabla := gradient(f):
+   sol := [solve([seq(nabla(var)[i]=0,i=1..numelems([var]))])]:
+   if (numelems(sol)&gt;0) then
+      H := hesse(f):
+      sol, seq(LinearAlgebra[Eigenvalues](subs(sol[i],H(var))),i=1..numelems(sol));
+   else
+      &quot;No solutions for stationary points&quot;;
+   end if:
 else
-&quot;No solutions&quot;;
-end if:
-else
-local var2, sol2, afledt; var2 := op(1,eval(r)):
-afledt := unapply(diff(f(vop(r(var2))),var2),var2):
-sol2 := [solve(afledt(var2)=0,var2)]:
-sol2, seq(subs(var2=sol2[i],r(var2)),i=1..numelems(sol2));
+   local var2, sol2, afledt; var2 := op(1,eval(r)):
+   afledt := diff(f(vop(r(var2))),var2):
+   sol2 := [solve(afledt=0,var2)]:
+   sol2, seq(subs(var2=sol2[i],r(var2)),i=1..numelems(sol2));
 end if;
 end proc;
 
@@ -229,35 +227,29 @@ paraplot := proc(r::{procedure},range::{list})
 local var,i; var:=op(1,eval(r)):
 if (numelems(range)=1) then
    if (numelems(r(var))=2) then
-   plot([vop(r(var)),var=range[1]],scaling=constrained);
+      plot([vop(r(var)),var=range[1]]); # Kurve i 2D
    else
-   plot3d([vop(r(var))],var=range[1],scaling=constrained<Font encoding="UTF-8">)
+      plot3d(r(var),var=range[1],orientation=[-55,75,0]) # Kurve i 3D
    end if:
 elif (numelems(range)=2) then
-plot3d([vop(r(var))],seq(var[i]=range[i],i=1..2), scaling=constrained);
-elif (numelems([var])=3) then
-     if (type(range[1],range)) then
-     &quot;Husk at ikke at give ranges til volumer, men interval v\303\246rdier&quot;;
-     else
-     Integrator8[sideFlader](r,range,[8,8,8]);
-     end if;
+   if (numelems(r(var))=2) then
+      plot3d(&lt;r(var),0&gt;,var[1]=range[1],var[2]=range[2],orientation=[-90,0],lightmodel=none); # Plan i 2D aka flad 3D
+   else
+      plot3d(r(var),var[1]=range[1],var[2]=range[2],orientation=[-55,75,0]); # Flade i 3D
+   end if:
+elif (numelems([var])=3) then 
+   Integrator8[sideFlader](r,[seq(vop(convert(range[i],list)),i=1..3)],[8,8,8]); # Legeme i 3D
 end if;
 end proc;
-</Font>
-end module;</Text-field>
+
+end module:</Text-field>
 </Input>
-<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEuU3VwZXJTZWpQYWtrZUYnLyUnaXRhbGljR1EldHJ1ZUYnLyUsbWF0aHZhcmlhbnRHUSdpdGFsaWNGJy1JI21vR0YkNi1RKSZBc3NpZ247RicvRjNRJ25vcm1hbEYnLyUmZmVuY2VHUSZmYWxzZUYnLyUqc2VwYXJhdG9yR0Y9LyUpc3RyZXRjaHlHRj0vJSpzeW1tZXRyaWNHRj0vJShsYXJnZW9wR0Y9LyUubW92YWJsZWxpbWl0c0dGPS8lJ2FjY2VudEdGPS8lJ2xzcGFjZUdRLDAuMjc3Nzc3OGVtRicvJSdyc3BhY2VHRkwtRiM2Ky1GNjYvUSdtb2R1bGVGJy8lJWJvbGRHRjEvRjNRJWJvbGRGJy8lK2ZvbnR3ZWlnaHRHRldGO0Y+RkBGQkZERkZGSC9GS1EmMC4wZW1GJy9GTkZlbi1JKG1mZW5jZWRHRiQ2JC1GIzYmLUYsNiVRIUYnRi9GMi8lK2ZvcmVncm91bmRHUShbMCwwLDBdRicvJSlyZWFkb25seUdGPUY5RjktSSdtc3BhY2VHRiQ2Ji8lJ2hlaWdodEdRJjAuMGV4RicvJSZ3aWR0aEdRJjAuNWVtRicvJSZkZXB0aEdGaW8vJSpsaW5lYnJlYWtHUTFmaXJzdHByb2NuZXdsaW5lRictRjY2LVEkLi4uRidGOUY7Rj5GQEZCRkRGRkZIL0ZLUSwwLjIyMjIyMjJlbUYnRmZuLUZlbzYmRmdvRmpvRl1wL0ZgcFE2ZGVjcmVhc2VpbmRlbnRuZXdsaW5lRictRjY2L1ErZW5kfm1vZHVsZUYnRlRGVkZYRjtGPkZARkJGREZGRkhGWkZmbkZfb0Zib0Y5Rjk=">LV9JLFR5cGVzZXR0aW5nRzYkJSpwcm90ZWN0ZWRHSShfc3lzbGliRzYiSSxtcHJpbnRzbGFzaEdGKDYkNyM+SS5TdXBlclNlalBha2tlR0YoYDY3SSdKYWNvYmlHNiRGJi9JJ19sb2NhbEdGJkkwX24xODg0MzYxODE0ODE2R0YoSSlncmFkaWVudEc2JEYmL0YzSTBfbjE4ODQzNjkxNDYzMzZHRihJJGRpdkc2JEYmL0YzSTBfbjE4ODQzNjE4MTQ0MDBHRihJJHJvdEc2JEYmL0YzSTBfbjE4ODQzNjE4MTQzNjhHRihJKWV2ZWN0b3JzRzYkRiYvRjNJMF9uMTg4NDM2OTE0NjI5NkdGKEklcHJpa0c2JEYmL0YzSTBfbjE4ODQzNjE4MTQzMzZHRihJJmtyeWRzRzYkRiYvRjNJMF9uMTg4NDM2MTgxNDI3MkdGKEknbm9ybWFsRzYkRiYvRjNJMF9uMTg4NDM2MTgxNDIwOEdGKEkkbGVuRzYkRiYvRjNJMF9uMTg4NDM2MTgxNDE3NkdGKEkkdm9wRzYkRiYvRjNJMF9uMTg4NDM2MTgxNDE0NEdGKEkpaW50ZWdyZXJHNiRGJi9GM0kwX24xODg0MzY5MTQ2MjU2R0YoSSVmbHV4RzYkRiYvRjNJMF9uMTg4NDM2MTgxNDExMkdGKEkpdGFuZ2llbHRHNiRGJi9GM0kwX24xODg0MzY5MTQ2MjE2R0YoSSdzdG9rZXNHNiRGJi9GM0kwX24xODg0MzYxODIxOTIwR0YoSSpmbG93a3VydmVHNiRGJi9GM0kwX24xODg0MzY5MTQ2MTc2R0YoSS9mbG93a3VydmVTb2x2ZUc2JEYmL0YzSTBfbjE4ODQzNjkxNDYxMzZHRihJJHRheUc2JEYmL0YzSTBfbjE4ODQzNjE4MjE4ODhHRihJJmhlc3NlRzYkRiYvRjNJMF9uMTg4NDM2MTgyMTg1NkdGKEkpc3RhbWZlbHRHNiRGJi9GM0kwX24xODg0MzY5MTQ2MDk2R0YoSShmdW5rYW5hRzYkRiYvRjNJMF9uMTg4NDM2MTgyMTgyNEdGKEkpcGFyYXBsb3RHNiRGJi9GM0kwX24xODg0MzY5MTQ2MDU2R0YoSTBfbTE4ODQzNjE4MTQ5MTJHRihGKDcjRi4=</Equation></Text-field>
-</Output>
 </Group>
 <Group hide-input="false" labelreference="L1216" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">with(SuperSejPakke)</Text-field>
 </Input>
-<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUkobWZlbmNlZEc2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUklbXJvd0dGJDZOLUkjbWlHRiQ2JVEnSmFjb2JpRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEiLEYnL0Y2USdub3JtYWxGJy8lJmZlbmNlR1EmZmFsc2VGJy8lKnNlcGFyYXRvckdGNC8lKXN0cmV0Y2h5R0ZALyUqc3ltbWV0cmljR0ZALyUobGFyZ2VvcEdGQC8lLm1vdmFibGVsaW1pdHNHRkAvJSdhY2NlbnRHRkAvJSdsc3BhY2VHUSYwLjBlbUYnLyUncnNwYWNlR1EsMC4zMzMzMzMzZW1GJy1GLzYlUSRkaXZGJ0YyRjVGOC1GLzYlUSlldmVjdG9yc0YnRjJGNUY4LUYvNiVRKmZsb3drdXJ2ZUYnRjJGNUY4LUYvNiVRL2Zsb3drdXJ2ZVNvbHZlRidGMkY1RjgtRi82JVElZmx1eEYnRjJGNUY4LUYvNiVRKGZ1bmthbmFGJ0YyRjVGOC1GLzYlUSlncmFkaWVudEYnRjJGNUY4LUYvNiVRJmhlc3NlRidGMkY1RjgtRi82JVEpaW50ZWdyZXJGJ0YyRjVGOC1GLzYlUSZrcnlkc0YnRjJGNUY4LUYvNiVRJGxlbkYnRjJGNUY4LUYvNiVGPUYyRjVGOC1GLzYlUSlwYXJhcGxvdEYnRjJGNUY4LUYvNiVRJXByaWtGJ0YyRjVGOC1GLzYlUSRyb3RGJ0YyRjVGOC1GLzYlUSlzdGFtZmVsdEYnRjJGNUY4LUYvNiVRJ3N0b2tlc0YnRjJGNUY4LUYvNiVRKXRhbmdpZWx0RidGMkY1RjgtRi82JVEkdGF5RidGMkY1RjgtRi82JVEkdm9wRidGMkY1LyUrZm9yZWdyb3VuZEdRKFswLDAsMF1GJy8lKXJlYWRvbmx5R0ZARjxGPC8lJW9wZW5HUScmbHNxYjtGJy8lJmNsb3NlR1EnJnJzcWI7Ric=">NzdJJ0phY29iaUdJKF9zeXNsaWJHNiJJJGRpdkdGJUkpZXZlY3RvcnNHRiVJKmZsb3drdXJ2ZUdGJUkvZmxvd2t1cnZlU29sdmVHRiVJJWZsdXhHRiVJKGZ1bmthbmFHRiVJKWdyYWRpZW50R0YlSSZoZXNzZUdGJUkpaW50ZWdyZXJHRiVJJmtyeWRzR0YlSSRsZW5HRiVJJ25vcm1hbEclKnByb3RlY3RlZEdJKXBhcmFwbG90R0YlSSVwcmlrR0YlSSRyb3RHRiVJKXN0YW1mZWx0R0YlSSdzdG9rZXNHRiVJKXRhbmdpZWx0R0YlSSR0YXlHRiVJJHZvcEdGJQ==</Equation></Text-field>
+<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUkobWZlbmNlZEc2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUklbXJvd0dGJDZOLUkjbWlHRiQ2JVEkZGl2RicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEiLEYnL0Y2USdub3JtYWxGJy8lJmZlbmNlR1EmZmFsc2VGJy8lKnNlcGFyYXRvckdGNC8lKXN0cmV0Y2h5R0ZALyUqc3ltbWV0cmljR0ZALyUobGFyZ2VvcEdGQC8lLm1vdmFibGVsaW1pdHNHRkAvJSdhY2NlbnRHRkAvJSdsc3BhY2VHUSYwLjBlbUYnLyUncnNwYWNlR1EsMC4zMzMzMzMzZW1GJy1GLzYlUSlldmVjdG9yc0YnRjJGNUY4LUYvNiVRKmZsb3drdXJ2ZUYnRjJGNUY4LUYvNiVRL2Zsb3drdXJ2ZXNvbHZlRidGMkY1RjgtRi82JVElZmx1eEYnRjJGNUY4LUYvNiVRKGZ1bmthbmFGJ0YyRjVGOC1GLzYlUSlncmFkaWVudEYnRjJGNUY4LUYvNiVRJmhlc3NlRidGMkY1RjgtRi82JVEpaW50ZWdyZXJGJ0YyRjVGOC1GLzYlUSdqYWNvYmlGJ0YyRjVGOC1GLzYlUSZrcnlkc0YnRjJGNUY4LUYvNiVRJGxlbkYnRjJGNUY4LUYvNiVGPUYyRjVGOC1GLzYlUSlwYXJhcGxvdEYnRjJGNUY4LUYvNiVRJXByaWtGJ0YyRjVGOC1GLzYlUSRyb3RGJ0YyRjVGOC1GLzYlUSlzdGFtZmVsdEYnRjJGNUY4LUYvNiVRJ3N0b2tlc0YnRjJGNUY4LUYvNiVRKXRhbmdpZWx0RidGMkY1RjgtRi82JVEkdGF5RidGMkY1RjgtRi82JVEkdm9wRidGMkY1LyUrZm9yZWdyb3VuZEdRKFswLDAsMF1GJy8lKXJlYWRvbmx5R0ZARjxGPC8lJW9wZW5HUScmbHNxYjtGJy8lJmNsb3NlR1EnJnJzcWI7Ric=">NzdJJGRpdkc2IkkpZXZlY3RvcnNHRiRJKmZsb3drdXJ2ZUdGJEkvZmxvd2t1cnZlc29sdmVHRiRJJWZsdXhHRiRJKGZ1bmthbmFHRiRJKWdyYWRpZW50R0YkSSZoZXNzZUdGJEkpaW50ZWdyZXJHRiRJJ2phY29iaUdGJEkma3J5ZHNHRiRJJGxlbkdGJEknbm9ybWFsRyUqcHJvdGVjdGVkR0kpcGFyYXBsb3RHRiRJJXByaWtHRiRJJHJvdEdGJEkpc3RhbWZlbHRHRiRJJ3N0b2tlc0dGJEkpdGFuZ2llbHRHRiRJJHRheUdGJEkkdm9wR0Yk</Equation></Text-field>
 </Output>
-</Group>
-<Group labelreference="L1296" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
-<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
-</Input>
 </Group>
 <Group labelreference="L1208" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field style="Text" layout="Normal" alignment="centred"><Font size="26" bold="true">!!!TIL BRUG AF PAKKE!!!</Font></Text-field>
@@ -292,7 +284,6 @@ Og pakken kan nu anvendes.</Text-field>
 <Input><Text-field style="Text" layout="Normal">
 
 
-
 </Text-field>
 </Input>
 </Group>
@@ -312,7 +303,45 @@ Og pakken kan nu anvendes.</Text-field>
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 </Input>
 </Group>
+<Section collapsed="true" isCollapsible="true" drawButton="true" MultipleChoiceAnswerIndex="-1" MultipleChoiceRandomizeChoices="false" TrueFalseAnswerIndex="-1" EssayAnswerRows="5" EssayAnswerColumns="60"><Title><Text-field style="Heading 1" layout="Heading 1">Brug af paraplot</Text-field></Title>
+<Group hide-input="false" labelreference="L1888" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">#r1:=(u) -&gt; &lt;sin(u),u^2&gt;,[0..6]:
+#r2:=(u) -&gt; &lt;sin(u),sqrt(u),u&gt;,[0..6]:
+#r3:=(u,v) -&gt; &lt;u,exp(-u/3)*sin(u)*v&gt;,[0..2*Pi,0..1]:
+#r4:=(u,v) -&gt; &lt;u,exp(-u/3)*sin(u)*v,-cos(v)&gt;,[0..4,0..1]:
+#r5:=(u,v,w) -&gt; &lt;u*v*cos(w),u*v*sin(w),u^2*v&gt;,[0..2,0..1,0..3/2*Pi]:</Text-field>
+</Input>
+</Group>
+<Group hide-input="false" labelreference="L1890" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">#paraplot(r1);paraplot(r2);paraplot(r3);paraplot(r4);paraplot(r5);</Text-field>
+</Input>
+</Group>
+<Group hide-input="false" labelreference="L1887" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+</Section>
+<Group hide-input="false" labelreference="L1889" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
 <Group hide-input="false" labelreference="L1282" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+<Group labelreference="L1894" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+<Group labelreference="L1893" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+<Group labelreference="L1892" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+<Group labelreference="L1891" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 </Input>
 </Group>
