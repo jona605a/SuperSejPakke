@@ -62,25 +62,25 @@ vop:=proc(X)
 op(convert(X,list)) 
 end proc:
 
-integrer:= proc(r::{procedure},integrateRange::{list},f::{procedure}:=1);
+integrer:= proc(r::{procedure},integrateRange::{list(range)},f::{procedure}:=1);
 local var, i;
 var := [op(1,eval(r))]:
 int(f(vop(r(vop(var))))*jacobi(r),seq(var[i]=integrateRange[i],i=1..numelems(integrateRange)));
 end proc:
 
-flux:= proc(r::{procedure},integrateRange::{list},V::{procedure});
+flux:= proc(r::{procedure},integrateRange::{list(range)},V::{procedure});
 local var,i;
 var := [op(1,eval(r))]:
 int(prik(V(vop(r(vop(var)))),LinearAlgebra[CrossProduct](diff(r(vop(var)),var[1]),diff(r(vop(var)),var[2]))),seq(var[i]=integrateRange[i],i=1..numelems(integrateRange)));
 end proc:
 
-tangielt:= proc(r::{procedure},integrateRange::{list},V::{procedure})
+tangielt:= proc(r::{procedure},integrateRange::{list(range)},V::{procedure})
 local var,i;
 var := [op(1,eval(r))]:
 int(prik(V(vop(r(var[1]))),diff(r(var[1]),var[1])),var[1]=integrateRange[1]);
 end proc:
 
-stokes:= proc(r::{procedure},integrateRange::{list},V::{procedure});
+stokes:= proc(r::{procedure},integrateRange::{list(range)},V::{procedure});
 flux(r,integrateRange,rot(V));
 end proc:
 
@@ -132,7 +132,7 @@ else
 end if;
 end proc;
 
-paraplot := proc(r::{procedure},range::{list})
+paraplot := proc(r::{procedure},range::{list(range)})
 local var,i; var:=op(1,eval(r)):
 if (numelems(range)=1) then
    if (numelems(r(var))=2) then
@@ -151,7 +151,7 @@ elif (numelems([var])=3) then
 end if;
 end proc;
 
-massemidte := proc(r::procedure, range::list, f::procedure:=1)
+massemidte := proc(r::procedure, range::{list(range)}, f::procedure:=1)
 local M, i, var,fweight; var:=op(1,eval(f)):
 M := integrer(r,range,f):
 if (numelems([var])>1) then 
