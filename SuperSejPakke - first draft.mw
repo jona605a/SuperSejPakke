@@ -91,7 +91,7 @@
 <Group hide-input="false" labelreference="L1085" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">SuperSejPakke := module()
 option package;
-export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot,massemidte;
+export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot,massemidte,punkttillinje;
 
 jacobi := proc(r::{procedure})
 local i, var;
@@ -228,13 +228,13 @@ if (numelems(range)=1) then
    if (numelems(r(var))=2) then
       plot([vop(r(var)),var=range[1]]); # Kurve i 2D
    else
-      plot3d(r(var),var=range[1],orientation=[-55,75,0]) # Kurve i 3D
+      plot3d(r(var),var=range[1]) # Kurve i 3D
    end if:
 elif (numelems(range)=2) then
    if (numelems(r(var))=2) then
       plot3d(&lt;r(var),0&gt;,var[1]=range[1],var[2]=range[2],orientation=[-90,0],lightmodel=none); # Plan i 2D
    else
-      plot3d(r(var),var[1]=range[1],var[2]=range[2],orientation=[-55,75,0]); # Flade i 3D
+      plot3d(r(var),var[1]=range[1],var[2]=range[2]); # Flade i 3D
    end if:
 elif (numelems([var])=3) then 
    Integrator8[sideFlader](r,[seq(vop(convert(range[i],list)),i=1..3)],[8,8,8]); 
@@ -252,20 +252,30 @@ end if;
 &lt;seq(integrer(r,range,fweight),i=1..3)&gt; * 1/M;
 end proc:
 
+punkttillinje:=proc(punkter::list({list,Vector}))
+local i, dim, n; dim:= numelems(punkter[1]): n:=numelems(punkter):
+seq([unapply(&lt;punkter[i]&gt;+u*(&lt;punkter[i+1]&gt;-&lt;punkter[i]&gt;),u),[0..1]] ,i=1..(n-1))
+end proc:
+
+
 end module:</Text-field>
 </Input>
 </Group>
 <Group hide-input="false" labelreference="L1216" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">with(SuperSejPakke)</Text-field>
 </Input>
-<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUkobWZlbmNlZEc2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUklbXJvd0dGJDZQLUkjbWlHRiQ2JVEkZGl2RicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEiLEYnL0Y2USdub3JtYWxGJy8lJmZlbmNlR1EmZmFsc2VGJy8lKnNlcGFyYXRvckdGNC8lKXN0cmV0Y2h5R0ZALyUqc3ltbWV0cmljR0ZALyUobGFyZ2VvcEdGQC8lLm1vdmFibGVsaW1pdHNHRkAvJSdhY2NlbnRHRkAvJSdsc3BhY2VHUSYwLjBlbUYnLyUncnNwYWNlR1EsMC4zMzMzMzMzZW1GJy1GLzYlUSlldmVjdG9yc0YnRjJGNUY4LUYvNiVRKmZsb3drdXJ2ZUYnRjJGNUY4LUYvNiVRL2Zsb3drdXJ2ZXNvbHZlRidGMkY1RjgtRi82JVElZmx1eEYnRjJGNUY4LUYvNiVRKGZ1bmthbmFGJ0YyRjVGOC1GLzYlUSlncmFkaWVudEYnRjJGNUY4LUYvNiVRJmhlc3NlRidGMkY1RjgtRi82JVEpaW50ZWdyZXJGJ0YyRjVGOC1GLzYlUSdqYWNvYmlGJ0YyRjVGOC1GLzYlUSZrcnlkc0YnRjJGNUY4LUYvNiVRJGxlbkYnRjJGNUY4LUYvNiVRK21hc3NlbWlkdGVGJ0YyRjVGOC1GLzYlRj1GMkY1RjgtRi82JVEpcGFyYXBsb3RGJ0YyRjVGOC1GLzYlUSVwcmlrRidGMkY1RjgtRi82JVEkcm90RidGMkY1RjgtRi82JVEpc3RhbWZlbHRGJ0YyRjVGOC1GLzYlUSdzdG9rZXNGJ0YyRjVGOC1GLzYlUSl0YW5naWVsdEYnRjJGNUY4LUYvNiVRJHRheUYnRjJGNUY4LUYvNiVRJHZvcEYnRjJGNS8lK2ZvcmVncm91bmRHUShbMCwwLDBdRicvJSlyZWFkb25seUdGQEY8RjwvJSVvcGVuR1EnJmxzcWI7RicvJSZjbG9zZUdRJyZyc3FiO0Yn">NzhJJGRpdkc2IkkpZXZlY3RvcnNHRiRJKmZsb3drdXJ2ZUdGJEkvZmxvd2t1cnZlc29sdmVHRiRJJWZsdXhHRiRJKGZ1bmthbmFHRiRJKWdyYWRpZW50R0YkSSZoZXNzZUdGJEkpaW50ZWdyZXJHRiRJJ2phY29iaUdGJEkma3J5ZHNHRiRJJGxlbkdGJEkrbWFzc2VtaWR0ZUdGJEknbm9ybWFsRyUqcHJvdGVjdGVkR0kpcGFyYXBsb3RHRiRJJXByaWtHRiRJJHJvdEdGJEkpc3RhbWZlbHRHRiRJJ3N0b2tlc0dGJEkpdGFuZ2llbHRHRiRJJHRheUdGJEkkdm9wR0Yk</Equation></Text-field>
+<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUkobWZlbmNlZEc2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUklbXJvd0dGJDZSLUkjbWlHRiQ2JVEkZGl2RicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEiLEYnL0Y2USdub3JtYWxGJy8lJmZlbmNlR1EmZmFsc2VGJy8lKnNlcGFyYXRvckdGNC8lKXN0cmV0Y2h5R0ZALyUqc3ltbWV0cmljR0ZALyUobGFyZ2VvcEdGQC8lLm1vdmFibGVsaW1pdHNHRkAvJSdhY2NlbnRHRkAvJSdsc3BhY2VHUSYwLjBlbUYnLyUncnNwYWNlR1EsMC4zMzMzMzMzZW1GJy1GLzYlUSlldmVjdG9yc0YnRjJGNUY4LUYvNiVRKmZsb3drdXJ2ZUYnRjJGNUY4LUYvNiVRL2Zsb3drdXJ2ZXNvbHZlRidGMkY1RjgtRi82JVElZmx1eEYnRjJGNUY4LUYvNiVRKGZ1bmthbmFGJ0YyRjVGOC1GLzYlUSlncmFkaWVudEYnRjJGNUY4LUYvNiVRJmhlc3NlRidGMkY1RjgtRi82JVEpaW50ZWdyZXJGJ0YyRjVGOC1GLzYlUSdqYWNvYmlGJ0YyRjVGOC1GLzYlUSZrcnlkc0YnRjJGNUY4LUYvNiVRJGxlbkYnRjJGNUY4LUYvNiVRK21hc3NlbWlkdGVGJ0YyRjVGOC1GLzYlRj1GMkY1RjgtRi82JVEpcGFyYXBsb3RGJ0YyRjVGOC1GLzYlUSVwcmlrRidGMkY1RjgtRi82JVEucHVua3R0aWxsaW5qZUYnRjJGNUY4LUYvNiVRJHJvdEYnRjJGNUY4LUYvNiVRKXN0YW1mZWx0RidGMkY1RjgtRi82JVEnc3Rva2VzRidGMkY1RjgtRi82JVEpdGFuZ2llbHRGJ0YyRjVGOC1GLzYlUSR0YXlGJ0YyRjVGOC1GLzYlUSR2b3BGJ0YyRjUvJStmb3JlZ3JvdW5kR1EoWzAsMCwwXUYnLyUpcmVhZG9ubHlHRkBGPEY8LyUlb3BlbkdRJyZsc3FiO0YnLyUmY2xvc2VHUScmcnNxYjtGJw==">NzlJJGRpdkc2IkkpZXZlY3RvcnNHRiRJKmZsb3drdXJ2ZUdGJEkvZmxvd2t1cnZlc29sdmVHRiRJJWZsdXhHRiRJKGZ1bmthbmFHRiRJKWdyYWRpZW50R0YkSSZoZXNzZUdGJEkpaW50ZWdyZXJHRiRJJ2phY29iaUdGJEkma3J5ZHNHRiRJJGxlbkdGJEkrbWFzc2VtaWR0ZUdGJEknbm9ybWFsRyUqcHJvdGVjdGVkR0kpcGFyYXBsb3RHRiRJJXByaWtHRiRJLnB1bmt0dGlsbGluamVHRiRJJHJvdEdGJEkpc3RhbWZlbHRHRiRJJ3N0b2tlc0dGJEkpdGFuZ2llbHRHRiRJJHRheUdGJEkkdm9wR0Yk</Equation></Text-field>
 </Output>
 </Group>
-<Group hide-input="false" labelreference="L1895" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Group hide-input="false" labelreference="L1950" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 </Input>
 </Group>
-<Group hide-input="false" labelreference="L1896" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Group hide-input="false" labelreference="L1952" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+<Group labelreference="L1948" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 </Input>
 </Group>
@@ -360,6 +370,24 @@ Og pakken kan nu anvendes.</Text-field>
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 </Input>
 </Group>
+<Section collapsed="true" isCollapsible="true" drawButton="true" MultipleChoiceAnswerIndex="-1" MultipleChoiceRandomizeChoices="false" TrueFalseAnswerIndex="-1" EssayAnswerRows="5" EssayAnswerColumns="60"><Title><Text-field style="Heading 1" layout="Heading 1">Brug af punkttillinje</Text-field></Title>
+<Group hide-input="false" labelreference="L1954" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">#A,B,C:=&lt;0,1,0&gt;,&lt;0,2,-10&gt;,&lt;3,0,-10&gt;;</Text-field>
+</Input>
+</Group>
+<Group hide-input="false" labelreference="L1955" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">#enmasseparameterfremstillinger:=punkttillinje([A,B,C]);</Text-field>
+</Input>
+</Group>
+<Group hide-input="false" labelreference="L1956" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">#enmasseparameterfremstillinger(u);</Text-field>
+</Input>
+</Group>
+<Group labelreference="L1953" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+</Section>
 <Group hide-input="false" labelreference="L1897" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 </Input>

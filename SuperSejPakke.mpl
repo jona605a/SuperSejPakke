@@ -1,7 +1,7 @@
 
 SuperSejPakke := module()
 option package;
-export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot,massemidte;
+export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot,massemidte,punkttillinje;
 
 jacobi := proc(r::{procedure})
 local i, var;
@@ -138,13 +138,13 @@ if (numelems(range)=1) then
    if (numelems(r(var))=2) then
       plot([vop(r(var)),var=range[1]]); # Kurve i 2D
    else
-      plot3d(r(var),var=range[1],orientation=[-55,75,0]) # Kurve i 3D
+      plot3d(r(var),var=range[1]) # Kurve i 3D
    end if:
 elif (numelems(range)=2) then
    if (numelems(r(var))=2) then
       plot3d(<r(var),0>,var[1]=range[1],var[2]=range[2],orientation=[-90,0],lightmodel=none); # Plan i 2D
    else
-      plot3d(r(var),var[1]=range[1],var[2]=range[2],orientation=[-55,75,0]); # Flade i 3D
+      plot3d(r(var),var[1]=range[1],var[2]=range[2]); # Flade i 3D
    end if:
 elif (numelems([var])=3) then 
    Integrator8[sideFlader](r,[seq(vop(convert(range[i],list)),i=1..3)],[8,8,8]); 
@@ -162,9 +162,16 @@ end if;
 <seq(integrer(r,range,fweight),i=1..3)> * 1/M;
 end proc:
 
+punkttillinje:=proc(punkter::list({list,Vector}))
+local i, dim, n; dim:= numelems(punkter[1]): n:=numelems(punkter):
+seq([unapply(<punkter[i]>+u*(<punkter[i+1]>-<punkter[i]>),u),[0..1]] ,i=1..(n-1))
+end proc:
+
+
 end module:
 with(SuperSejPakke)
 ;
+
 
 
 
@@ -213,6 +220,11 @@ with(SuperSejPakke)
 #f:=(x,y,z)-> x^2+y^2+z^2;
 #massemidte(r5);
 #with(plots):display(paraplot(r5),pointplot3d(massemidte(r5),symbol=solidsphere,symbolsize=20,color=green))
+
+# Brug af punkttillinje
+#A,B,C:=<0,1,0>,<0,2,-10>,<3,0,-10>;
+#enmasseparameterfremstillinger:=punkttillinje([A,B,C]);
+#enmasseparameterfremstillinger(u);
 
 
 
