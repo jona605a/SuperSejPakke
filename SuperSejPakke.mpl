@@ -74,10 +74,10 @@ var := [op(1,eval(r))]:
 int(prik(V(vop(r(vop(var)))),LinearAlgebra[CrossProduct](diff(r(vop(var)),var[1]),diff(r(vop(var)),var[2]))),seq(var[i]=integrateRange[i],i=1..numelems(integrateRange)));
 end proc:
 
-tangielt:= proc(r::{procedure},integrateRange::{range},V::{procedure})
+tangielt:= proc(r::{procedure},integrateRange::{list},V::{procedure})
 local var,i;
 var := [op(1,eval(r))]:
-int(prik(V(vop(r(var[1]))),diff(r(var[1]),var[1])),var[1]=integrateRange);
+int(prik(V(vop(r(var[1]))),diff(r(var[1]),var[1])),var[1]=integrateRange[1]);
 end proc:
 
 stokes:= proc(r::{procedure},integrateRange::{list},V::{procedure});
