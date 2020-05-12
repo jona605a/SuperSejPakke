@@ -1,7 +1,7 @@
 
 SuperSejPakke := module()
 option package;
-export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot,massemidte;
+export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot, massemidte, ortodia;
 
 jacobi := proc(r::{procedure})
 local i, var;
@@ -160,6 +160,13 @@ else
    fweight:=unapply([x,y,z][i],[x,y,z])
 end if;
 <seq(integrer(r,range,fweight),i=1..3)> * 1/M;
+end proc:
+
+ortodia:= proc(A::{Matrix})
+local elist,normelist,i,j;
+elist := evectors(A);
+normelist := LinearAlgebra[GramSchmidt]([seq(seq(elist[i][3][j],j=1..numelems(elist[i][3])),i=1..numelems(elist))],normalized):
+Matrix(numelems(normelist),normelist);
 end proc:
 
 end module:
