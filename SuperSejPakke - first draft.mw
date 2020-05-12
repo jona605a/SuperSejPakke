@@ -91,7 +91,7 @@
 <Group hide-input="false" labelreference="L1085" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">SuperSejPakke := module()
 option package;
-export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot, massemidte, punkttillinje, ortodia;
+export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot, massemidte, punkttillinje, ortodia, normalplot, avg;
 
 jacobi := proc(r::{procedure})
 local i, var;
@@ -150,6 +150,11 @@ end proc:
 
 vop:=proc(X) 
 op(convert(X,list)) 
+end proc:
+
+avg := proc(listoavg::list)
+local i;
+sum(listoavg[i],i=1..numelems(listoavg))/numelems(listoavg)
 end proc:
 
 integrer:= proc(r::{procedure},integrateRange::{list(range)},f::{procedure}:=1);
@@ -264,6 +269,14 @@ normelist := LinearAlgebra[GramSchmidt]([seq(seq(elist[i][3][j],j=1..numelems(el
 Matrix(numelems(normelist),normelist);
 end proc:
 
+normalplot:= proc(r::{procedure},range::{list(range)})
+local norvek, var, punkt, i;
+var:=op(1,eval(r)):
+norvek := unapply(normal(r),[var]):
+punkt := seq(avg([vop(range[i])]),i=1..2):
+display(paraplot(r,range),arrow(r(punkt),norvek(punkt)));
+end proc:
+
 
 end module:</Text-field>
 </Input>
@@ -271,7 +284,7 @@ end module:</Text-field>
 <Group hide-input="false" labelreference="L1216" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">with(SuperSejPakke)</Text-field>
 </Input>
-<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUkobWZlbmNlZEc2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUklbXJvd0dGJDZSLUkjbWlHRiQ2JVEkZGl2RicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEiLEYnL0Y2USdub3JtYWxGJy8lJmZlbmNlR1EmZmFsc2VGJy8lKnNlcGFyYXRvckdGNC8lKXN0cmV0Y2h5R0ZALyUqc3ltbWV0cmljR0ZALyUobGFyZ2VvcEdGQC8lLm1vdmFibGVsaW1pdHNHRkAvJSdhY2NlbnRHRkAvJSdsc3BhY2VHUSYwLjBlbUYnLyUncnNwYWNlR1EsMC4zMzMzMzMzZW1GJy1GLzYlUSlldmVjdG9yc0YnRjJGNUY4LUYvNiVRKmZsb3drdXJ2ZUYnRjJGNUY4LUYvNiVRL2Zsb3drdXJ2ZXNvbHZlRidGMkY1RjgtRi82JVElZmx1eEYnRjJGNUY4LUYvNiVRKGZ1bmthbmFGJ0YyRjVGOC1GLzYlUSlncmFkaWVudEYnRjJGNUY4LUYvNiVRJmhlc3NlRidGMkY1RjgtRi82JVEpaW50ZWdyZXJGJ0YyRjVGOC1GLzYlUSdqYWNvYmlGJ0YyRjVGOC1GLzYlUSZrcnlkc0YnRjJGNUY4LUYvNiVRJGxlbkYnRjJGNUY4LUYvNiVRK21hc3NlbWlkdGVGJ0YyRjVGOC1GLzYlRj1GMkY1RjgtRi82JVEpcGFyYXBsb3RGJ0YyRjVGOC1GLzYlUSVwcmlrRidGMkY1RjgtRi82JVEucHVua3R0aWxsaW5qZUYnRjJGNUY4LUYvNiVRJHJvdEYnRjJGNUY4LUYvNiVRKXN0YW1mZWx0RidGMkY1RjgtRi82JVEnc3Rva2VzRidGMkY1RjgtRi82JVEpdGFuZ2llbHRGJ0YyRjVGOC1GLzYlUSR0YXlGJ0YyRjVGOC1GLzYlUSR2b3BGJ0YyRjUvJStmb3JlZ3JvdW5kR1EoWzAsMCwwXUYnLyUpcmVhZG9ubHlHRkBGPEY8LyUlb3BlbkdRJyZsc3FiO0YnLyUmY2xvc2VHUScmcnNxYjtGJw==">NzlJJGRpdkc2IkkpZXZlY3RvcnNHRiRJKmZsb3drdXJ2ZUdGJEkvZmxvd2t1cnZlc29sdmVHRiRJJWZsdXhHRiRJKGZ1bmthbmFHRiRJKWdyYWRpZW50R0YkSSZoZXNzZUdGJEkpaW50ZWdyZXJHRiRJJ2phY29iaUdGJEkma3J5ZHNHRiRJJGxlbkdGJEkrbWFzc2VtaWR0ZUdGJEknbm9ybWFsRyUqcHJvdGVjdGVkR0kpcGFyYXBsb3RHRiRJJXByaWtHRiRJLnB1bmt0dGlsbGluamVHRiRJJHJvdEdGJEkpc3RhbWZlbHRHRiRJJ3N0b2tlc0dGJEkpdGFuZ2llbHRHRiRJJHRheUdGJEkkdm9wR0Yk</Equation></Text-field>
+<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUkobWZlbmNlZEc2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUklbXJvd0dGJDZULUkjbWlHRiQ2JVEkZGl2RicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEiLEYnL0Y2USdub3JtYWxGJy8lJmZlbmNlR1EmZmFsc2VGJy8lKnNlcGFyYXRvckdGNC8lKXN0cmV0Y2h5R0ZALyUqc3ltbWV0cmljR0ZALyUobGFyZ2VvcEdGQC8lLm1vdmFibGVsaW1pdHNHRkAvJSdhY2NlbnRHRkAvJSdsc3BhY2VHUSYwLjBlbUYnLyUncnNwYWNlR1EsMC4zMzMzMzMzZW1GJy1GLzYlUSlldmVjdG9yc0YnRjJGNUY4LUYvNiVRKmZsb3drdXJ2ZUYnRjJGNUY4LUYvNiVRL2Zsb3drdXJ2ZXNvbHZlRidGMkY1RjgtRi82JVElZmx1eEYnRjJGNUY4LUYvNiVRKGZ1bmthbmFGJ0YyRjVGOC1GLzYlUSlncmFkaWVudEYnRjJGNUY4LUYvNiVRJmhlc3NlRidGMkY1RjgtRi82JVEpaW50ZWdyZXJGJ0YyRjVGOC1GLzYlUSdqYWNvYmlGJ0YyRjVGOC1GLzYlUSZrcnlkc0YnRjJGNUY4LUYvNiVRJGxlbkYnRjJGNUY4LUYvNiVRK21hc3NlbWlkdGVGJ0YyRjVGOC1GLzYlRj1GMkY1RjgtRi82JVEob3J0b2RpYUYnRjJGNUY4LUYvNiVRKXBhcmFwbG90RidGMkY1RjgtRi82JVElcHJpa0YnRjJGNUY4LUYvNiVRLnB1bmt0dGlsbGluamVGJ0YyRjVGOC1GLzYlUSRyb3RGJ0YyRjVGOC1GLzYlUSlzdGFtZmVsdEYnRjJGNUY4LUYvNiVRJ3N0b2tlc0YnRjJGNUY4LUYvNiVRKXRhbmdpZWx0RidGMkY1RjgtRi82JVEkdGF5RidGMkY1RjgtRi82JVEkdm9wRidGMkY1LyUrZm9yZWdyb3VuZEdRKFswLDAsMF1GJy8lKXJlYWRvbmx5R0ZARjxGPC8lJW9wZW5HUScmbHNxYjtGJy8lJmNsb3NlR1EnJnJzcWI7Ric=">NzpJJGRpdkc2IkkpZXZlY3RvcnNHRiRJKmZsb3drdXJ2ZUdGJEkvZmxvd2t1cnZlc29sdmVHRiRJJWZsdXhHRiRJKGZ1bmthbmFHRiRJKWdyYWRpZW50R0YkSSZoZXNzZUdGJEkpaW50ZWdyZXJHRiRJJ2phY29iaUdGJEkma3J5ZHNHRiRJJGxlbkdGJEkrbWFzc2VtaWR0ZUdGJEknbm9ybWFsRyUqcHJvdGVjdGVkR0kob3J0b2RpYUdGJEkpcGFyYXBsb3RHRiRJJXByaWtHRiRJLnB1bmt0dGlsbGluamVHRiRJJHJvdEdGJEkpc3RhbWZlbHRHRiRJJ3N0b2tlc0dGJEkpdGFuZ2llbHRHRiRJJHRheUdGJEkkdm9wR0Yk</Equation></Text-field>
 </Output>
 </Group>
 <Group hide-input="false" labelreference="L1950" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
