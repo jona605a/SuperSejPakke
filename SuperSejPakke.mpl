@@ -184,7 +184,7 @@ local norvek, var, punkt, i;
 var:=op(1,eval(r)):
 norvek := unapply(normal(r),[var]):
 punkt := seq(avg([vop(range[i])]),i=1..2):
-display(paraplot(r,range),plots[arrow](r(punkt),norvek(punkt)));
+plots[display](paraplot(r,range),plots[arrow](r(punkt),norvek(punkt)));
 end proc:
 
 
