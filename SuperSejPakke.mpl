@@ -167,6 +167,13 @@ local i, dim, n; dim:= numelems(punkter[1]): n:=numelems(punkter):
 seq([unapply(<punkter[i]>+u*(<punkter[i+1]>-<punkter[i]>),u),[0..1]] ,i=1..(n-1))
 end proc:
 
+ortodia:= proc(A::{Matrix})
+local elist,normelist,i,j;
+elist := evectors(A);
+normelist := LinearAlgebra[GramSchmidt]([seq(seq(elist[i][3][j],j=1..numelems(elist[i][3])),i=1..numelems(elist))],normalized):
+Matrix(numelems(normelist),normelist);
+end proc:
+
 
 end module:
 with(SuperSejPakke)
