@@ -1,7 +1,7 @@
 
 SuperSejPakke := module()
 option package;
-export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot,massemidte,punkttillinje;
+export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot, massemidte, punkttillinje, ortodia;
 
 jacobi := proc(r::{procedure})
 local i, var;
