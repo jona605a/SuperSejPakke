@@ -1,7 +1,7 @@
 
 SuperSejPakke := module()
 option package;
-export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot,massemidte,punkttillinje;
+export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot, massemidte, punkttillinje, ortodia, normalplot, avg;
 
 jacobi := proc(r::{procedure})
 local i, var;
@@ -60,6 +60,11 @@ end proc:
 
 vop:=proc(X) 
 op(convert(X,list)) 
+end proc:
+
+avg := proc(listoavg::list)
+local i;
+sum(listoavg[i],i=1..numelems(listoavg))/numelems(listoavg)
 end proc:
 
 integrer:= proc(r::{procedure},integrateRange::{list(range)},f::{procedure}:=1);
@@ -165,6 +170,21 @@ end proc:
 punkttillinje:=proc(punkter::list({list,Vector}))
 local i, dim, n; dim:= numelems(punkter[1]): n:=numelems(punkter):
 seq([unapply(<punkter[i]>+u*(<punkter[i+1]>-<punkter[i]>),u),[0..1]] ,i=1..(n-1))
+end proc:
+
+ortodia:= proc(A::{Matrix})
+local elist,normelist,i,j;
+elist := evectors(A);
+normelist := LinearAlgebra[GramSchmidt]([seq(seq(elist[i][3][j],j=1..numelems(elist[i][3])),i=1..numelems(elist))],normalized):
+Matrix(numelems(normelist),normelist);
+end proc:
+
+normalplot:= proc(r::{procedure},range::{list(range)})
+local norvek, var, punkt, i;
+var:=op(1,eval(r)):
+norvek := unapply(normal(r),[var]):
+punkt := seq(avg([vop(range[i])]),i=1..2):
+plots[display](paraplot(r,range),plots[arrow](r(punkt),norvek(punkt)));
 end proc:
 
 
