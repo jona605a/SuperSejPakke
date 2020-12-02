@@ -1,7 +1,7 @@
 
 SuperSejPakke := module()
 option package;
-export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot, massemidte, punkttillinje, ortodia, normalplot, avg;
+export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot, massemidte, punkttillinje, ortodia, normalplot, avg, fourierseries, vectorsolve, seriesplot;
 
 jacobi := proc(r::{procedure})
 local i, var;
@@ -187,10 +187,38 @@ punkt := seq(avg([vop(range[i])]),i=1..2):
 plots[display](paraplot(r,range),plots[arrow](r(punkt),norvek(punkt)));
 end proc:
 
+fourierseries := proc(f, N, {Trig:=true, Exp:=false, Function:=true, [Coefficients,Coef]:=false})
+local i,a,b,c;
+if not(Trig or Exp) or not(Function or Coefficients) then return "Error" end if;
+if not Exp then
+   a := n-> 1/Pi*int(f(x)*cos(n*x),x=-Pi..Pi);
+   b := n-> 1/Pi*int(f(x)*sin(n*x),x=-Pi..Pi);
+   if Coefficients then return "a(n)"=a(n), "b(n)"=b(n) end if;
+   1/2*a(0)+sum(a(n)*cos(n*x)+b(n)*sin(n*x),n=1..N);
+else:
+   c := n-> 1/(2*Pi) * int(f(x)*exp(-I*n*x),x=-Pi..Pi);
+   sum(c(n)*exp(I*n*x),n=-N..N);
+end if;
+end proc:
+
+vectorsolve := proc(equation)
+local i;
+solve([seq(lhs(equation)[i] = rhs(equation)[i],i=1..nops(lhs(equation)))],_rest);
+end proc:
+
+seriesplot := proc(sequence, N)
+local a,l;
+l := limit(sequence,n=infinity):
+display(plot(l,n=0..N),pointplot([seq([a,subs(n=a,sequence)],a=1..N)],_rest));
+end proc:
+
 
 end module:
 with(SuperSejPakke)
 ;
+
+
+
 
 
 

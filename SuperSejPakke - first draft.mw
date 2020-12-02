@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Worksheet>
-<Version major="2019" minor="0"/>
+<Version major="2020" minor="2"/>
 <Label-Scheme value="2" prefix=""/>
 <View-Properties presentation="false" autoexpanding_sections="true" UserProfileName="Maple Default Profile" NumericFormat-ApplyInteger="true" NumericFormat-ApplyRational="true" NumericFormat-ApplyExponent="false" editable="true">
 </View-Properties>
@@ -91,7 +91,7 @@
 <Group hide-input="false" labelreference="L1085" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">SuperSejPakke := module()
 option package;
-export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot, massemidte, punkttillinje, ortodia, normalplot, avg;
+export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot, massemidte, punkttillinje, ortodia, normalplot, avg, fourierseries, vectorsolve, seriesplot;
 
 jacobi := proc(r::{procedure})
 local i, var;
@@ -277,6 +277,31 @@ punkt := seq(avg([vop(range[i])]),i=1..2):
 plots[display](paraplot(r,range),plots[arrow](r(punkt),norvek(punkt)));
 end proc:
 
+fourierseries := proc(f, N, {Trig:=true, Exp:=false, Function:=true, [Coefficients,Coef]:=false})
+local i,a,b,c;
+if not(Trig or Exp) or not(Function or Coefficients) then return &quot;Error&quot; end if;
+if not Exp then
+   a := n-&gt; 1/Pi*int(f(x)*cos(n*x),x=-Pi..Pi);
+   b := n-&gt; 1/Pi*int(f(x)*sin(n*x),x=-Pi..Pi);
+   if Coefficients then return &quot;a(n)&quot;=a(n), &quot;b(n)&quot;=b(n) end if;
+   1/2*a(0)+sum(a(n)*cos(n*x)+b(n)*sin(n*x),n=1..N);
+else:
+   c := n-&gt; 1/(2*Pi) * int(f(x)*exp(-I*n*x),x=-Pi..Pi);
+   sum(c(n)*exp(I*n*x),n=-N..N);
+end if;
+end proc:
+
+vectorsolve := proc(equation)
+local i;
+solve([seq(lhs(equation)[i] = rhs(equation)[i],i=1..nops(lhs(equation)))],_rest);
+end proc:
+
+seriesplot := proc(sequence, N)
+local a,l;
+l := limit(sequence,n=infinity):
+display(plot(l,n=0..N),pointplot([seq([a,subs(n=a,sequence)],a=1..N)],_rest));
+end proc:
+
 
 end module:</Text-field>
 </Input>
@@ -284,8 +309,20 @@ end module:</Text-field>
 <Group hide-input="false" labelreference="L1216" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">with(SuperSejPakke)</Text-field>
 </Input>
-<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUkobWZlbmNlZEc2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUklbXJvd0dGJDZYLUkjbWlHRiQ2JVEkYXZnRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEiLEYnL0Y2USdub3JtYWxGJy8lJmZlbmNlR1EmZmFsc2VGJy8lKnNlcGFyYXRvckdGNC8lKXN0cmV0Y2h5R0ZALyUqc3ltbWV0cmljR0ZALyUobGFyZ2VvcEdGQC8lLm1vdmFibGVsaW1pdHNHRkAvJSdhY2NlbnRHRkAvJSdsc3BhY2VHUSYwLjBlbUYnLyUncnNwYWNlR1EsMC4zMzMzMzMzZW1GJy1GLzYlUSRkaXZGJ0YyRjVGOC1GLzYlUSlldmVjdG9yc0YnRjJGNUY4LUYvNiVRKmZsb3drdXJ2ZUYnRjJGNUY4LUYvNiVRL2Zsb3drdXJ2ZXNvbHZlRidGMkY1RjgtRi82JVElZmx1eEYnRjJGNUY4LUYvNiVRKGZ1bmthbmFGJ0YyRjVGOC1GLzYlUSlncmFkaWVudEYnRjJGNUY4LUYvNiVRJmhlc3NlRidGMkY1RjgtRi82JVEpaW50ZWdyZXJGJ0YyRjVGOC1GLzYlUSdqYWNvYmlGJ0YyRjVGOC1GLzYlUSZrcnlkc0YnRjJGNUY4LUYvNiVRJGxlbkYnRjJGNUY4LUYvNiVRK21hc3NlbWlkdGVGJ0YyRjVGOC1GLzYlRj1GMkY1RjgtRi82JVErbm9ybWFscGxvdEYnRjJGNUY4LUYvNiVRKG9ydG9kaWFGJ0YyRjVGOC1GLzYlUSlwYXJhcGxvdEYnRjJGNUY4LUYvNiVRJXByaWtGJ0YyRjVGOC1GLzYlUS5wdW5rdHRpbGxpbmplRidGMkY1RjgtRi82JVEkcm90RidGMkY1RjgtRi82JVEpc3RhbWZlbHRGJ0YyRjVGOC1GLzYlUSdzdG9rZXNGJ0YyRjVGOC1GLzYlUSl0YW5naWVsdEYnRjJGNUY4LUYvNiVRJHRheUYnRjJGNUY4LUYvNiVRJHZvcEYnRjJGNS8lK2ZvcmVncm91bmRHUShbMCwwLDBdRicvJSlyZWFkb25seUdGQEY8RjwvJSVvcGVuR1EnJmxzcWI7RicvJSZjbG9zZUdRJyZyc3FiO0Yn">NzxJJGF2Z0c2IkkkZGl2R0YkSSlldmVjdG9yc0dGJEkqZmxvd2t1cnZlR0YkSS9mbG93a3VydmVzb2x2ZUdGJEklZmx1eEdGJEkoZnVua2FuYUdGJEkpZ3JhZGllbnRHRiRJJmhlc3NlR0YkSSlpbnRlZ3JlckdGJEknamFjb2JpR0YkSSZrcnlkc0dGJEkkbGVuR0YkSSttYXNzZW1pZHRlR0YkSSdub3JtYWxHJSpwcm90ZWN0ZWRHSStub3JtYWxwbG90R0YkSShvcnRvZGlhR0YkSSlwYXJhcGxvdEdGJEklcHJpa0dGJEkucHVua3R0aWxsaW5qZUdGJEkkcm90R0YkSSlzdGFtZmVsdEdGJEknc3Rva2VzR0YkSSl0YW5naWVsdEdGJEkkdGF5R0YkSSR2b3BHRiQ=</Equation></Text-field>
+<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUkobWZlbmNlZEc2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUklbXJvd0dGJDZobi1JI21pR0YkNiVRJGF2Z0YnLyUnaXRhbGljR1EldHJ1ZUYnLyUsbWF0aHZhcmlhbnRHUSdpdGFsaWNGJy1JI21vR0YkNi1RIixGJy9GNlEnbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRjQvJSlzdHJldGNoeUdGQC8lKnN5bW1ldHJpY0dGQC8lKGxhcmdlb3BHRkAvJS5tb3ZhYmxlbGltaXRzR0ZALyUnYWNjZW50R0ZALyUnbHNwYWNlR1EmMC4wZW1GJy8lJ3JzcGFjZUdRLDAuMzMzMzMzM2VtRictRi82JVEkZGl2RidGMkY1RjgtRi82JVEpZXZlY3RvcnNGJ0YyRjVGOC1GLzYlUSpmbG93a3VydmVGJ0YyRjVGOC1GLzYlUS9mbG93a3VydmVzb2x2ZUYnRjJGNUY4LUYvNiVRJWZsdXhGJ0YyRjVGOC1GLzYlUS5mb3VyaWVyc2VyaWVzRidGMkY1RjgtRi82JVEoZnVua2FuYUYnRjJGNUY4LUYvNiVRKWdyYWRpZW50RidGMkY1RjgtRi82JVEmaGVzc2VGJ0YyRjVGOC1GLzYlUSlpbnRlZ3JlckYnRjJGNUY4LUYvNiVRJ2phY29iaUYnRjJGNUY4LUYvNiVRJmtyeWRzRidGMkY1RjgtRi82JVEkbGVuRidGMkY1RjgtRi82JVErbWFzc2VtaWR0ZUYnRjJGNUY4LUYvNiVGPUYyRjVGOC1GLzYlUStub3JtYWxwbG90RidGMkY1RjgtRi82JVEob3J0b2RpYUYnRjJGNUY4LUYvNiVRKXBhcmFwbG90RidGMkY1RjgtRi82JVElcHJpa0YnRjJGNUY4LUYvNiVRLnB1bmt0dGlsbGluamVGJ0YyRjVGOC1GLzYlUSRyb3RGJ0YyRjVGOC1GLzYlUStzZXJpZXNwbG90RidGMkY1RjgtRi82JVEpc3RhbWZlbHRGJ0YyRjVGOC1GLzYlUSdzdG9rZXNGJ0YyRjVGOC1GLzYlUSl0YW5naWVsdEYnRjJGNUY4LUYvNiVRJHRheUYnRjJGNUY4LUYvNiVRLHZlY3RvcnNvbHZlRidGMkY1RjgtRi82JVEkdm9wRidGMkY1LyUrZm9yZWdyb3VuZEdRKFswLDAsMF1GJy8lKXJlYWRvbmx5R0ZARjxGPC8lJW9wZW5HUScmbHNxYjtGJy8lJmNsb3NlR1EnJnJzcWI7Ric=">Nz9JJGF2Z0c2IkkkZGl2R0YkSSlldmVjdG9yc0dGJEkqZmxvd2t1cnZlR0YkSS9mbG93a3VydmVzb2x2ZUdGJEklZmx1eEdGJEkuZm91cmllcnNlcmllc0dGJEkoZnVua2FuYUdGJEkpZ3JhZGllbnRHRiRJJmhlc3NlR0YkSSlpbnRlZ3JlckdGJEknamFjb2JpR0YkSSZrcnlkc0dGJEkkbGVuR0YkSSttYXNzZW1pZHRlR0YkSSdub3JtYWxHJSpwcm90ZWN0ZWRHSStub3JtYWxwbG90R0YkSShvcnRvZGlhR0YkSSlwYXJhcGxvdEdGJEklcHJpa0dGJEkucHVua3R0aWxsaW5qZUdGJEkkcm90R0YkSStzZXJpZXNwbG90R0YkSSlzdGFtZmVsdEdGJEknc3Rva2VzR0YkSSl0YW5naWVsdEdGJEkkdGF5R0YkSSx2ZWN0b3Jzb2x2ZUdGJEkkdm9wR0Yk</Equation></Text-field>
 </Output>
+</Group>
+<Group labelreference="L1980" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+<Group labelreference="L1969" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+<Group labelreference="L1957" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
 </Group>
 <Group hide-input="false" labelreference="L1950" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
