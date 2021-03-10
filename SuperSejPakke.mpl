@@ -1,7 +1,7 @@
 
 SuperSejPakke := module()
 option package;
-export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot, massemidte, punkttillinje, ortodia, normalplot, avg, fourierseries, vectorsolve, seriesplot;
+export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot, massemidte, punkttillinje, ortodia, normalplot, avg, fourierseries, vectorsolve, seriesplot, dsystemsolve, routhHurwitz, KMeansList;
 
 jacobi := proc(r::{procedure})
 local i, var;
@@ -50,7 +50,7 @@ else print("Dont dead open inside");
 end if;
 end proc:
 
-kryds:=proc(x::Vector,y::Vector);
+kryds:=proc(x::Vector, y::Vector);
 convert(VectorCalculus[CrossProduct](x,y),Vector);
 end proc:
 
@@ -58,7 +58,7 @@ len:= proc(a::{Vector})
 sqrt(prik(a,a));
 end proc:
 
-vop:=proc(X) 
+vop:=proc(X)
 op(convert(X,list)) 
 end proc:
 
@@ -110,7 +110,7 @@ end proc:
 
 hesse:= proc(f::{procedure})
 local var; var := [op(1,eval(f))]:
-unapply(VectorCalculus[Hessian](f(vop(var)),[vop(var)]),[vop(var)]);
+unapply(VectorCalculus[Hessian](f(vop(var)),var),var);
 end proc:
 
 stamfelt:= proc(V::{procedure})
@@ -141,18 +141,18 @@ paraplot := proc(r::{procedure},range::{list(range)})
 local var,i; var:=op(1,eval(r)):
 if (numelems(range)=1) then
    if (numelems(r(var))=2) then
-      plot([vop(r(var)),var=range[1]]); # Kurve i 2D
+      plot([vop(r(var)),var=range[1]],_rest); # Kurve i 2D
    else
-      plot3d(r(var),var=range[1]) # Kurve i 3D
+      plot3d(r(var),var=range[1],_rest) # Kurve i 3D
    end if:
 elif (numelems(range)=2) then
    if (numelems(r(var))=2) then
-      plot3d(<r(var),0>,var[1]=range[1],var[2]=range[2],orientation=[-90,0],lightmodel=none); # Plan i 2D
+      plot3d(<r(var),0>,var[1]=range[1],var[2]=range[2],orientation=[-90,0],lightmodel=none,_rest); # Plan i 2D
    else
-      plot3d(r(var),var[1]=range[1],var[2]=range[2]); # Flade i 3D
+      plot3d(r(var),var[1]=range[1],var[2]=range[2],_rest); # Flade i 3D
    end if:
 elif (numelems([var])=3) then 
-   Integrator8[sideFlader](r,[seq(vop(convert(range[i],list)),i=1..3)],[8,8,8]); 
+   display(Integrator8[sideFlader](r,[seq(vop(convert(range[i],list)),i=1..3)],[8,8,8]),_rest); 
 end if;
 end proc;
 
@@ -203,7 +203,7 @@ end proc:
 
 vectorsolve := proc(equation)
 local i;
-solve([seq(lhs(equation)[i] = rhs(equation)[i],i=1..nops(lhs(equation)))],_rest);
+solve([seq(lhs(equation)[i] = rhs(equation)[i],i=1..Dimension(lhs(equation)))],_rest);
 end proc:
 
 seriesplot := proc(sequence, N)
@@ -212,12 +212,56 @@ l := limit(sequence,n=infinity):
 display(plot(l,n=0..N),pointplot([seq([a,subs(n=a,sequence)],a=1..N)],_rest));
 end proc:
 
+dsystemsolve := proc(A)
+local n, i, sol;
+n := Dimension(A)[1];
+sol := dsolve([seq(diff(x[i](t),t)=A[i].<seq(x[j](t),j=1..n)> , i=1..n)],_rest);
+<seq(x[i](t),i=1..n)> = <seq(simplify(rhs(sol[i])),i=1..n)>;
+end proc:
+
+routhHurwitz := proc(A)
+if not (Dimension(A) = (3,3)) then return "Error, dimension should be 3x3" end if;
+local d;
+d := LinearAlgebra[Determinant](A-lambda*IdentityMatrix(3)):
+d := d / coeff(d,lambda,3):
+solve([coeff(d,lambda,0)>0, coeff(d,lambda,1)>0, coeff(d,lambda,2)>0, LinearAlgebra[Determinant](<coeff(d,lambda,2),coeff(d,lambda,0);1,coeff(d,lambda,1)>)>0]);
+end proc:
+
+KMeansList := proc(points::list, initial_centroids::list)
+    local n, i, distances, ci, j, K, centroid, cluster, previous_centroids, point_index;
+    n := nops(points);
+    K := nops(initial_centroids);
+    centroid := initial_centroids;
+    previous_centroids := 0;
+    while centroid <> previous_centroids do
+        previous_centroids := centroid;
+        for j to K do
+            cluster[j] := [];
+            point_index[j] := [];
+        end do;
+        for i to n do
+            distances := [seq([abs(points[i] - centroid[j]), j], j = 1 .. K)];
+            ci := sort(distances)[1, 2];
+            cluster[ci] := [op(cluster[ci]), points[i]];
+            point_index[ci] := [op(point_index[ci]), i];
+        end do;
+        for j to K do
+            centroid[j] := SuperSejPakke:-avg(cluster[j]);
+        end do;
+    end do;
+    print(seq(point_index[j], j = 1 .. K));
+    return seq(cluster[j], j = 1 .. K);
+end proc:
+
+
 
 end module:
 with(SuperSejPakke)
 ;
 
 
+
+with(plots):
 
 
 
@@ -273,6 +317,11 @@ with(SuperSejPakke)
 #A,B,C:=<0,1,0>,<0,2,-10>,<3,0,-10>;
 #enmasseparameterfremstillinger:=punkttillinje([A,B,C]);
 #enmasseparameterfremstillinger(u);
+
+
+# K-Means Clustering of 1d list
+#KMeansList([42,38.3,40.1,34.2,50.9,30.3,68.6,19.4] , [19.4,30.3]);
+
 
 
 

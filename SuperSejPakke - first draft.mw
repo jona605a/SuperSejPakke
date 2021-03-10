@@ -91,7 +91,7 @@
 <Group hide-input="false" labelreference="L1085" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">SuperSejPakke := module()
 option package;
-export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot, massemidte, punkttillinje, ortodia, normalplot, avg, fourierseries, vectorsolve, seriesplot;
+export jacobi, gradient, div, rot, evectors, prik, kryds, normal, len, vop, integrer, flux, tangielt, stokes, flowkurve, flowkurvesolve, tay, hesse, stamfelt, funkana, paraplot, massemidte, punkttillinje, ortodia, normalplot, avg, fourierseries, vectorsolve, seriesplot, dsystemsolve, routhHurwitz, KMeansList;
 
 jacobi := proc(r::{procedure})
 local i, var;
@@ -140,7 +140,7 @@ else print(&quot;Dont dead open inside&quot;);
 end if;
 end proc:
 
-kryds:=proc(x::Vector,y::Vector);
+kryds:=proc(x::Vector, y::Vector);
 convert(VectorCalculus[CrossProduct](x,y),Vector);
 end proc:
 
@@ -148,7 +148,7 @@ len:= proc(a::{Vector})
 sqrt(prik(a,a));
 end proc:
 
-vop:=proc(X) 
+vop:=proc(X)
 op(convert(X,list)) 
 end proc:
 
@@ -200,7 +200,7 @@ end proc:
 
 hesse:= proc(f::{procedure})
 local var; var := [op(1,eval(f))]:
-unapply(VectorCalculus[Hessian](f(vop(var)),[vop(var)]),[vop(var)]);
+unapply(VectorCalculus[Hessian](f(vop(var)),var),var);
 end proc:
 
 stamfelt:= proc(V::{procedure})
@@ -231,18 +231,18 @@ paraplot := proc(r::{procedure},range::{list(range)})
 local var,i; var:=op(1,eval(r)):
 if (numelems(range)=1) then
    if (numelems(r(var))=2) then
-      plot([vop(r(var)),var=range[1]]); # Kurve i 2D
+      plot([vop(r(var)),var=range[1]],_rest); # Kurve i 2D
    else
-      plot3d(r(var),var=range[1]) # Kurve i 3D
+      plot3d(r(var),var=range[1],_rest) # Kurve i 3D
    end if:
 elif (numelems(range)=2) then
    if (numelems(r(var))=2) then
-      plot3d(&lt;r(var),0&gt;,var[1]=range[1],var[2]=range[2],orientation=[-90,0],lightmodel=none); # Plan i 2D
+      plot3d(&lt;r(var),0&gt;,var[1]=range[1],var[2]=range[2],orientation=[-90,0],lightmodel=none,_rest); # Plan i 2D
    else
-      plot3d(r(var),var[1]=range[1],var[2]=range[2]); # Flade i 3D
+      plot3d(r(var),var[1]=range[1],var[2]=range[2],_rest); # Flade i 3D
    end if:
 elif (numelems([var])=3) then 
-   Integrator8[sideFlader](r,[seq(vop(convert(range[i],list)),i=1..3)],[8,8,8]); 
+   display(Integrator8[sideFlader](r,[seq(vop(convert(range[i],list)),i=1..3)],[8,8,8]),_rest); 
 end if;
 end proc;
 
@@ -293,7 +293,7 @@ end proc:
 
 vectorsolve := proc(equation)
 local i;
-solve([seq(lhs(equation)[i] = rhs(equation)[i],i=1..nops(lhs(equation)))],_rest);
+solve([seq(lhs(equation)[i] = rhs(equation)[i],i=1..Dimension(lhs(equation)))],_rest);
 end proc:
 
 seriesplot := proc(sequence, N)
@@ -302,6 +302,48 @@ l := limit(sequence,n=infinity):
 display(plot(l,n=0..N),pointplot([seq([a,subs(n=a,sequence)],a=1..N)],_rest));
 end proc:
 
+dsystemsolve := proc(A)
+local n, i, sol;
+n := Dimension(A)[1];
+sol := dsolve([seq(diff(x[i](t),t)=A[i].&lt;seq(x[j](t),j=1..n)&gt; , i=1..n)],_rest);
+&lt;seq(x[i](t),i=1..n)&gt; = &lt;seq(simplify(rhs(sol[i])),i=1..n)&gt;;
+end proc:
+
+routhHurwitz := proc(A)
+if not (Dimension(A) = (3,3)) then return &quot;Error, dimension should be 3x3&quot; end if;
+local d;
+d := LinearAlgebra[Determinant](A-lambda*IdentityMatrix(3)):
+d := d / coeff(d,lambda,3):
+solve([coeff(d,lambda,0)&gt;0, coeff(d,lambda,1)&gt;0, coeff(d,lambda,2)&gt;0, LinearAlgebra[Determinant](&lt;coeff(d,lambda,2),coeff(d,lambda,0);1,coeff(d,lambda,1)&gt;)&gt;0]);
+end proc:
+
+<Font foreground="[0,0,255]">KMeansList </Font>:= proc(points::list, initial_centroids::list)
+    local n, i, distances, ci, j, K, centroid, cluster, previous_centroids, point_index;
+    n := nops(points);
+    K := nops(initial_centroids);
+    centroid := initial_centroids;
+    previous_centroids := 0;
+    while centroid &lt;&gt; previous_centroids do
+        previous_centroids := centroid;
+        for j to K do
+            cluster[j] := [];
+            point_index[j] := [];
+        end do;
+        for i to n do
+            distances := [seq([abs(points[i] - centroid[j]), j], j = 1 .. K)];
+            ci := sort(distances)[1, 2];
+            cluster[ci] := [op(cluster[ci]), points[i]];
+            point_index[ci] := [op(point_index[ci]), i];
+        end do;
+        for j to K do
+            centroid[j] := SuperSejPakke:-avg(cluster[j]);
+        end do;
+    end do;
+    print(seq(point_index[j], j = 1 .. K));
+    return seq(cluster[j], j = 1 .. K);
+end proc:
+
+
 
 end module:</Text-field>
 </Input>
@@ -309,7 +351,7 @@ end module:</Text-field>
 <Group hide-input="false" labelreference="L1216" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">with(SuperSejPakke)</Text-field>
 </Input>
-<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUkobWZlbmNlZEc2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUklbXJvd0dGJDZobi1JI21pR0YkNiVRJGF2Z0YnLyUnaXRhbGljR1EldHJ1ZUYnLyUsbWF0aHZhcmlhbnRHUSdpdGFsaWNGJy1JI21vR0YkNi1RIixGJy9GNlEnbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRjQvJSlzdHJldGNoeUdGQC8lKnN5bW1ldHJpY0dGQC8lKGxhcmdlb3BHRkAvJS5tb3ZhYmxlbGltaXRzR0ZALyUnYWNjZW50R0ZALyUnbHNwYWNlR1EmMC4wZW1GJy8lJ3JzcGFjZUdRLDAuMzMzMzMzM2VtRictRi82JVEkZGl2RidGMkY1RjgtRi82JVEpZXZlY3RvcnNGJ0YyRjVGOC1GLzYlUSpmbG93a3VydmVGJ0YyRjVGOC1GLzYlUS9mbG93a3VydmVzb2x2ZUYnRjJGNUY4LUYvNiVRJWZsdXhGJ0YyRjVGOC1GLzYlUS5mb3VyaWVyc2VyaWVzRidGMkY1RjgtRi82JVEoZnVua2FuYUYnRjJGNUY4LUYvNiVRKWdyYWRpZW50RidGMkY1RjgtRi82JVEmaGVzc2VGJ0YyRjVGOC1GLzYlUSlpbnRlZ3JlckYnRjJGNUY4LUYvNiVRJ2phY29iaUYnRjJGNUY4LUYvNiVRJmtyeWRzRidGMkY1RjgtRi82JVEkbGVuRidGMkY1RjgtRi82JVErbWFzc2VtaWR0ZUYnRjJGNUY4LUYvNiVGPUYyRjVGOC1GLzYlUStub3JtYWxwbG90RidGMkY1RjgtRi82JVEob3J0b2RpYUYnRjJGNUY4LUYvNiVRKXBhcmFwbG90RidGMkY1RjgtRi82JVElcHJpa0YnRjJGNUY4LUYvNiVRLnB1bmt0dGlsbGluamVGJ0YyRjVGOC1GLzYlUSRyb3RGJ0YyRjVGOC1GLzYlUStzZXJpZXNwbG90RidGMkY1RjgtRi82JVEpc3RhbWZlbHRGJ0YyRjVGOC1GLzYlUSdzdG9rZXNGJ0YyRjVGOC1GLzYlUSl0YW5naWVsdEYnRjJGNUY4LUYvNiVRJHRheUYnRjJGNUY4LUYvNiVRLHZlY3RvcnNvbHZlRidGMkY1RjgtRi82JVEkdm9wRidGMkY1LyUrZm9yZWdyb3VuZEdRKFswLDAsMF1GJy8lKXJlYWRvbmx5R0ZARjxGPC8lJW9wZW5HUScmbHNxYjtGJy8lJmNsb3NlR1EnJnJzcWI7Ric=">Nz9JJGF2Z0c2IkkkZGl2R0YkSSlldmVjdG9yc0dGJEkqZmxvd2t1cnZlR0YkSS9mbG93a3VydmVzb2x2ZUdGJEklZmx1eEdGJEkuZm91cmllcnNlcmllc0dGJEkoZnVua2FuYUdGJEkpZ3JhZGllbnRHRiRJJmhlc3NlR0YkSSlpbnRlZ3JlckdGJEknamFjb2JpR0YkSSZrcnlkc0dGJEkkbGVuR0YkSSttYXNzZW1pZHRlR0YkSSdub3JtYWxHJSpwcm90ZWN0ZWRHSStub3JtYWxwbG90R0YkSShvcnRvZGlhR0YkSSlwYXJhcGxvdEdGJEklcHJpa0dGJEkucHVua3R0aWxsaW5qZUdGJEkkcm90R0YkSStzZXJpZXNwbG90R0YkSSlzdGFtZmVsdEdGJEknc3Rva2VzR0YkSSl0YW5naWVsdEdGJEkkdGF5R0YkSSx2ZWN0b3Jzb2x2ZUdGJEkkdm9wR0Yk</Equation></Text-field>
+<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUkobWZlbmNlZEc2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUklbXJvd0dGJDZeby1JI21pR0YkNiVRK0tNZWFuc0xpc3RGJy8lJ2l0YWxpY0dRJXRydWVGJy8lLG1hdGh2YXJpYW50R1EnaXRhbGljRictSSNtb0dGJDYtUSIsRicvRjZRJ25vcm1hbEYnLyUmZmVuY2VHUSZmYWxzZUYnLyUqc2VwYXJhdG9yR0Y0LyUpc3RyZXRjaHlHRkAvJSpzeW1tZXRyaWNHRkAvJShsYXJnZW9wR0ZALyUubW92YWJsZWxpbWl0c0dGQC8lJ2FjY2VudEdGQC8lJ2xzcGFjZUdRJjAuMGVtRicvJSdyc3BhY2VHUSwwLjMzMzMzMzNlbUYnLUYvNiVRJGF2Z0YnRjJGNUY4LUYvNiVRJGRpdkYnRjJGNUY4LUYvNiVRLWRzeXN0ZW1zb2x2ZUYnRjJGNUY4LUYvNiVRKWV2ZWN0b3JzRidGMkY1RjgtRi82JVEqZmxvd2t1cnZlRidGMkY1RjgtRi82JVEvZmxvd2t1cnZlc29sdmVGJ0YyRjVGOC1GLzYlUSVmbHV4RidGMkY1RjgtRi82JVEuZm91cmllcnNlcmllc0YnRjJGNUY4LUYvNiVRKGZ1bmthbmFGJ0YyRjVGOC1GLzYlUSlncmFkaWVudEYnRjJGNUY4LUYvNiVRJmhlc3NlRidGMkY1RjgtRi82JVEpaW50ZWdyZXJGJ0YyRjVGOC1GLzYlUSdqYWNvYmlGJ0YyRjVGOC1GLzYlUSZrcnlkc0YnRjJGNUY4LUYvNiVRJGxlbkYnRjJGNUY4LUYvNiVRK21hc3NlbWlkdGVGJ0YyRjVGOC1GLzYlRj1GMkY1RjgtRi82JVErbm9ybWFscGxvdEYnRjJGNUY4LUYvNiVRKG9ydG9kaWFGJ0YyRjVGOC1GLzYlUSlwYXJhcGxvdEYnRjJGNUY4LUYvNiVRJXByaWtGJ0YyRjVGOC1GLzYlUS5wdW5rdHRpbGxpbmplRidGMkY1RjgtRi82JVEkcm90RidGMkY1RjgtRi82JVEtcm91dGhIdXJ3aXR6RidGMkY1RjgtRi82JVErc2VyaWVzcGxvdEYnRjJGNUY4LUYvNiVRKXN0YW1mZWx0RidGMkY1RjgtRi82JVEnc3Rva2VzRidGMkY1RjgtRi82JVEpdGFuZ2llbHRGJ0YyRjVGOC1GLzYlUSR0YXlGJ0YyRjVGOC1GLzYlUSx2ZWN0b3Jzb2x2ZUYnRjJGNUY4LUYvNiVRJHZvcEYnRjJGNS8lK2ZvcmVncm91bmRHUShbMCwwLDBdRicvJSlyZWFkb25seUdGQEY8RjwvJSVvcGVuR1EnJmxzcWI7RicvJSZjbG9zZUdRJyZyc3FiO0Yn">N0JJK0tNZWFuc0xpc3RHNiJJJGF2Z0dGJEkkZGl2R0YkSS1kc3lzdGVtc29sdmVHRiRJKWV2ZWN0b3JzR0YkSSpmbG93a3VydmVHRiRJL2Zsb3drdXJ2ZXNvbHZlR0YkSSVmbHV4R0YkSS5mb3VyaWVyc2VyaWVzR0YkSShmdW5rYW5hR0YkSSlncmFkaWVudEdGJEkmaGVzc2VHRiRJKWludGVncmVyR0YkSSdqYWNvYmlHRiRJJmtyeWRzR0YkSSRsZW5HRiRJK21hc3NlbWlkdGVHRiRJJ25vcm1hbEclKnByb3RlY3RlZEdJK25vcm1hbHBsb3RHRiRJKG9ydG9kaWFHRiRJKXBhcmFwbG90R0YkSSVwcmlrR0YkSS5wdW5rdHRpbGxpbmplR0YkSSRyb3RHRiRJLXJvdXRoSHVyd2l0ekdGJEkrc2VyaWVzcGxvdEdGJEkpc3RhbWZlbHRHRiRJJ3N0b2tlc0dGJEkpdGFuZ2llbHRHRiRJJHRheUdGJEksdmVjdG9yc29sdmVHRiRJJHZvcEdGJA==</Equation></Text-field>
 </Output>
 </Group>
 <Group labelreference="L1980" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
@@ -325,6 +367,14 @@ end module:</Text-field>
 </Input>
 </Group>
 <Group hide-input="false" labelreference="L1950" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">with(plots):</Text-field>
+</Input>
+</Group>
+<Group hide-input="false" labelreference="L1984" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+<Group labelreference="L1983" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 </Input>
 </Group>
@@ -392,7 +442,7 @@ Og pakken kan nu anvendes.</Text-field>
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 </Input>
 </Group>
-<Section collapsed="true" isCollapsible="true" drawButton="true" MultipleChoiceAnswerIndex="-1" MultipleChoiceRandomizeChoices="false" TrueFalseAnswerIndex="-1" EssayAnswerRows="5" EssayAnswerColumns="60"><Title><Text-field style="Heading 1" layout="Heading 1">Brug af paraplot</Text-field></Title>
+<Section collapsed="false" isCollapsible="true" drawButton="true" MultipleChoiceAnswerIndex="-1" MultipleChoiceRandomizeChoices="false" TrueFalseAnswerIndex="-1" EssayAnswerRows="5" EssayAnswerColumns="60"><Title><Text-field style="Heading 1" layout="Heading 1">Brug af paraplot</Text-field></Title>
 <Group hide-input="false" labelreference="L1888" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">#r1:=(u) -&gt; &lt;sin(u),u^2&gt;,[0..6]:
 #r2:=(u) -&gt; &lt;sin(u),sqrt(u),u&gt;,[0..6]:
@@ -445,6 +495,24 @@ Og pakken kan nu anvendes.</Text-field>
 </Input>
 </Group>
 </Section>
+<Group labelreference="L1985" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+<Section collapsed="true" isCollapsible="true" drawButton="true" MultipleChoiceAnswerIndex="-1" MultipleChoiceRandomizeChoices="false" TrueFalseAnswerIndex="-1" EssayAnswerRows="5" EssayAnswerColumns="60"><Title><Text-field style="Heading 1" layout="Heading 1">K-Means Clustering of 1d list</Text-field></Title>
+<Group hide-input="false" labelreference="L1986" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">#KMeansList([42,38.3,40.1,34.2,50.9,30.3,68.6,19.4] , [19.4,30.3]);</Text-field>
+</Input>
+</Group>
+<Group labelreference="L1988" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+</Section>
+<Group labelreference="L1987" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
 <Group hide-input="false" labelreference="L1897" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 </Input>
